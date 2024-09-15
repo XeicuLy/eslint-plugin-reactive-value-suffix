@@ -260,9 +260,17 @@ export function isDestructuredFunctionArgument(
   destructuredFunctions: string[],
 ): boolean {
   return (
-    (isCallExpression(parent) && isIdentifier(parent.callee) && destructuredFunctions.includes(parent.callee.name)) ||
-    (isCallExpression(grandParent) &&
-      isIdentifier(grandParent.callee) &&
-      destructuredFunctions.includes(grandParent.callee.name))
+    isNodeDestructuredFunction(parent, destructuredFunctions) ||
+    Boolean(grandParent && isNodeDestructuredFunction(grandParent, destructuredFunctions))
   );
+}
+
+/**
+ * Check whether the node is a destructured function call
+ * @param {Node} node Node to check
+ * @param {string[]} destructuredFunctions List of destructured functions
+ * @returns {boolean} Whether the node is a destructured function call
+ */
+function isNodeDestructuredFunction(node: Node, destructuredFunctions: string[]): boolean {
+  return isCallExpression(node) && isIdentifier(node.callee) && destructuredFunctions.includes(node.callee.name);
 }
