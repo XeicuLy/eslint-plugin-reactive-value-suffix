@@ -9,7 +9,7 @@ This rule is not perfect, and a review is always recommended.
 First, install [ESLint](https://eslint.org/) either locally or globally (local installation per project is recommended).
 
 ```bash
-npm install eslint --save-dev
+npm install eslint @typescript-eslint/parser vue-eslint-parser --save-dev
 ```
 
 Then, install this plugin.
@@ -79,15 +79,37 @@ no error will be generated.
 
 Add the following parser options to your ESLint configuration for correct functionality:
 
+#### legacy config
+
 ```json
 {
   "languageOptions": {
+    "parser": "vue-eslint-parser",
     "parserOptions": {
       "parser": "@typescript-eslint/parser",
       "project": "./tsconfig.json"
     }
   }
 }
+```
+
+#### Flat Config
+
+```js
+import typescriptEslintParser from '@typescript-eslint/parser';
+import vueEslintParser from 'vue-eslint-parser';
+
+export default [
+  {
+    languageOptions: {
+      parser: vueEslintParser,
+      parserOptions: {
+        parser: typescriptEslintParser,
+        project: './tsconfig.json',
+      },
+    },
+  },
+];
 ```
 
 # このプラグインについて
@@ -101,7 +123,7 @@ Add the following parser options to your ESLint configuration for correct functi
 まず、[ESLint](https://eslint.org/)をローカルまたはグローバルにインストールします（プロジェクトごとにローカルインストールを推奨します）。
 
 ```bash
-npm install eslint --save-dev
+npm install eslint @typescript-eslint/parser vue-eslint-parser --save-dev
 ```
 
 次に、このプラグインをインストールします。
@@ -167,19 +189,77 @@ fooFunction(count); // No Error
 
 と、エラーが発生しなくなります。
 
+#### legacy config
+
+```cjs
+module.exports = {
+  plugins: ['reactive-value-suffix'],
+  rules: {
+    'reactive-value-suffix/suffix': [
+      'error',
+      {
+        functionNamesToIgnoreValueCheck: ['fooFunction'],
+      },
+    ],
+  },
+};
+```
+
+#### Flat Config
+
+```js
+import eslintReactiveValueSuffix from 'eslint-plugin-reactive-value-suffix';
+
+export default [
+  {
+    plugins: { 'reactive-value-suffix': eslintReactiveValueSuffix },
+    rules: {
+      'reactive-value-suffix/suffix': [
+        'error',
+        {
+          functionNamesToIgnoreValueCheck: ['fooFunction'],
+        },
+      ],
+    },
+  },
+];
+```
+
 ### parserの設定
 
 ESLintの設定ファイルに以下の設定を追加することで正しく動作することを想定しています。
 
 parserオプションを正しく設定しないとESLintが型情報を正しく取得できないため、この設定が重要です。
 
+#### legacy config
+
 ```json
 {
   "languageOptions": {
+    "parser": "vue-eslint-parser",
     "parserOptions": {
       "parser": "@typescript-eslint/parser",
       "project": "./tsconfig.json"
     }
   }
 }
+```
+
+#### Flat Config
+
+```js
+import typescriptEslintParser from '@typescript-eslint/parser';
+import vueEslintParser from 'vue-eslint-parser';
+
+export default [
+  {
+    languageOptions: {
+      parser: vueEslintParser,
+      parserOptions: {
+        parser: typescriptEslintParser,
+        project: './tsconfig.json',
+      },
+    },
+  },
+];
 ```

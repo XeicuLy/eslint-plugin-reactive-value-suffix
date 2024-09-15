@@ -15,9 +15,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Disable Husky
-        run: git config --local core.hooksPath /dev/null
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -35,7 +32,19 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Check if release is needed
+        run: |
+          if ! npx semantic-release --dry-run; then
+            echo "No release needed, skipping."
+            exit 0
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          HUSKY: 0
+
       - name: Release
+        if: success()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
