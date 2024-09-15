@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v1.0.3...v1.0.4) (2024-09-15)
+
+
+### Bug Fixes
+
+* trigger release ([b5aa5e2](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/commit/b5aa5e2e146b52115728e0bde86001ddb3e25960))
+
 ## [1.0.3](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v1.0.2...v1.0.3) (2024-09-15)
 
 ## [1.0.2](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v1.0.1...v1.0.2) (2024-09-15)
