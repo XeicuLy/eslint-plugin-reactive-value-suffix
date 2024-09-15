@@ -29,6 +29,8 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+        env:
+          HUSKY: 0
 
       - name: Build
         run: pnpm build
@@ -37,4 +39,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          HUSKY: 0
         run: npx semantic-release
