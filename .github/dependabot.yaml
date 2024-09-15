@@ -1,0 +1,43 @@
+version: 2
+updates:
+  # Regular updates (weekly)
+  - package-ecosystem: 'pnpm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'saturday'
+      time: '09:00'
+      timezone: 'Asia/Tokyo'
+    commit-message:
+      prefix: 'package:'
+      prefix-development: 'package:'
+      include: true
+      subject: '{{dependency.name}} update'
+    open-pull-requests-limit: 10
+    allow:
+      - dependency-type: 'direct'
+        update-type: 'version-update:semver-major'
+      - dependency-type: 'direct'
+        update-type: 'version-update:semver-minor'
+      - dependency-type: 'direct'
+        update-type: 'version-update:semver-patch'
+    labels:
+      - 'dependencies'
+    automerge: false
+
+  # Security updates (daily)
+  - package-ecosystem: 'pnpm'
+    directory: '/'
+    schedule:
+      interval: 'daily'
+    commit-message:
+      prefix: 'security:'
+      include: true
+      subject: '{{dependency.name}} security update'
+    open-pull-requests-limit: 10
+    allow:
+      - dependency-type: 'all'
+        update-type: 'security'
+    labels:
+      - 'security'
+    automerge: false
