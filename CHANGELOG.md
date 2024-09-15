@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v1.0.1...v1.0.2) (2024-09-15)
+
+
+### Bug Fixes
+
+* **package:** remove vite-node dependency from package.json ([11289e0](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/commit/11289e009d0c7e598b022c1e68c88878df46f4de))
+
 ## [1.0.1](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v1.0.0...v1.0.1) (2024-09-15)
 
 
