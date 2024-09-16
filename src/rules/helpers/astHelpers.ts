@@ -13,6 +13,7 @@ import type {
   MemberExpression,
   ASTNodeType,
   AssignmentPattern,
+  ArrayExpression,
 } from '../types/eslint';
 
 const { AST_NODE_TYPES } = TSESTree;
@@ -85,6 +86,14 @@ export const isAssignmentPattern = (node: Node | undefined): node is AssignmentP
   isNodeOfType<AssignmentPattern>(node, AST_NODE_TYPES.AssignmentPattern);
 
 /**
+ * Function to check whether a node is an ArrayExpression
+ * @param {Node | undefined} node The node to check
+ * @returns {node is ArrayExpression} Whether the node is an ArrayExpression
+ */
+export const isArrayExpression = (node: Node | undefined): node is ArrayExpression =>
+  isNodeOfType<ArrayExpression>(node, AST_NODE_TYPES.ArrayExpression);
+
+/**
  * Add function parameters to a list
  * @param {FunctionDeclaration | ArrowFunctionExpression} node Function declaration
  * @param {string[]} list Existing list
@@ -114,14 +123,18 @@ export function addReactiveVariables(node: VariableDeclarator, list: string[]): 
  * @returns {string[]} List with variable names added
  */
 export function addToVariablesListFromCalleeWithArgument(node: VariableDeclarator, list: string[]): string[] {
-  if (isFunctionCall(node, REACTIVE_FUNCTIONS) && isObjectPattern(node.id)) {
-    const variableNames = node.id.properties.reduce<string[]>((acc, property) => {
-      if (isIdentifier(property.value)) acc.push(property.value.name);
-      return acc;
-    }, []);
-    return addToList(variableNames, list);
+  if (!isFunctionCall(node, REACTIVE_FUNCTIONS) || !isObjectPattern(node.id)) {
+    return list;
   }
-  return list;
+
+  const variableNames = node.id.properties.reduce<string[]>((acc, property) => {
+    if (isIdentifier(property.value)) {
+      acc.push(property.value.name);
+    }
+    return acc;
+  }, []);
+
+  return addToList(variableNames, list);
 }
 
 /**
@@ -131,16 +144,23 @@ export function addToVariablesListFromCalleeWithArgument(node: VariableDeclarato
  * @returns {string[]} List with function names added
  */
 export function addDestructuredFunctionNames(node: VariableDeclarator, list: string[]): string[] {
-  if (isObjectPattern(node.id) && isCallExpression(node.init)) {
-    if (isIdentifier(node.init.callee) && COMPOSABLES_FUNCTION_PATTERN.test(node.init.callee.name)) {
-      const functionNames = node.id.properties.reduce<string[]>((acc, property) => {
-        if (isProperty(property) && isIdentifier(property.key)) acc.push(property.key.name);
-        return acc;
-      }, []);
-      return addToList(functionNames, list);
-    }
+  if (
+    !isObjectPattern(node.id) ||
+    !isCallExpression(node.init) ||
+    !isIdentifier(node.init.callee) ||
+    !COMPOSABLES_FUNCTION_PATTERN.test(node.init.callee.name)
+  ) {
+    return list;
   }
-  return list;
+
+  const functionNames = node.id.properties.reduce<string[]>((acc, property) => {
+    if (isProperty(property) && isIdentifier(property.key)) {
+      acc.push(property.key.name);
+    }
+    return acc;
+  }, []);
+
+  return addToList(functionNames, list);
 }
 
 /**
@@ -151,11 +171,12 @@ export function addDestructuredFunctionNames(node: VariableDeclarator, list: str
  */
 export function isArgumentOfFunction(node: Identifier, ignoredFunctionNames: string[]): boolean {
   const callExpression = getAncestorCallExpression(node);
-  return (
-    isIdentifier(callExpression?.callee) &&
-    isMatchingFunctionName(callExpression.callee.name, ignoredFunctionNames) &&
-    callExpression.arguments.includes(node)
-  );
+  if (!isIdentifier(callExpression?.callee)) {
+    return false;
+  }
+
+  const isMatchingName = isMatchingFunctionName(callExpression.callee.name, ignoredFunctionNames);
+  return isMatchingName && callExpression.arguments.includes(node);
 }
 
 /**
@@ -175,13 +196,16 @@ export function isMatchingFunctionName(name: string, ignoredFunctionNames: strin
  */
 export function isWatchArgument(node: Identifier): boolean {
   const callExpression = getAncestorCallExpression(node);
-  return (
-    isIdentifier(callExpression?.callee) &&
-    callExpression.callee.name === 'watch' &&
-    (callExpression.arguments?.indexOf(node) === 0 ||
-      (callExpression.arguments?.[0]?.type === 'ArrayExpression' &&
-        callExpression.arguments?.[0]?.elements?.includes(node)))
-  );
+
+  if (!isIdentifier(callExpression?.callee) || callExpression.callee.name !== 'watch') {
+    return false;
+  }
+
+  const isFirstArgument = callExpression.arguments?.indexOf(node) === 0;
+  const isInArrayExpression =
+    isArrayExpression(callExpression.arguments?.[0]) && callExpression.arguments?.[0]?.elements?.includes(node);
+
+  return isFirstArgument || isInArrayExpression;
 }
 
 /**

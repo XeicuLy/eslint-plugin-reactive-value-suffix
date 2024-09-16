@@ -6,8 +6,9 @@ import prettierConfig from 'eslint-config-prettier';
 export default [
   {
     ignores: [
-      'dist',
-      'node_modules',
+      'dist/**',
+      'node_modules/**',
+      'coverage/**',
       'eslint.config.mjs',
       'vitest.config.ts',
       'prettier.config.mjs',
