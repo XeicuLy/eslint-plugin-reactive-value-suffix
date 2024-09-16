@@ -42,5 +42,3 @@ plugins:
         - 'CHANGELOG.md'
         - 'package.json'
   - - '@semantic-release/github'
-    - successComment: false
-    - failComment: false
