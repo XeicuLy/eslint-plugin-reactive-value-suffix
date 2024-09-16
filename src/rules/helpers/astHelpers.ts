@@ -175,13 +175,16 @@ export function isMatchingFunctionName(name: string, ignoredFunctionNames: strin
  */
 export function isWatchArgument(node: Identifier): boolean {
   const callExpression = getAncestorCallExpression(node);
-  return (
-    isIdentifier(callExpression?.callee) &&
-    callExpression.callee.name === 'watch' &&
-    (callExpression.arguments?.indexOf(node) === 0 ||
-      (callExpression.arguments?.[0]?.type === 'ArrayExpression' &&
-        callExpression.arguments?.[0]?.elements?.includes(node)))
-  );
+
+  if (!isIdentifier(callExpression?.callee) || callExpression.callee.name !== 'watch') {
+    return false;
+  }
+
+  const isFirstArgument = callExpression.arguments?.indexOf(node) === 0;
+  const isInArrayExpression =
+    isArrayExpression(callExpression.arguments?.[0]) && callExpression.arguments?.[0]?.elements?.includes(node);
+
+  return isFirstArgument || isInArrayExpression;
 }
 
 /**
