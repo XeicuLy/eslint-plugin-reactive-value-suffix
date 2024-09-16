@@ -111,8 +111,7 @@ function checkMemberExpression(
   parserServices: ParserServices,
   checker: TypeChecker,
 ): void {
-  const isPropertyValue = isIdentifier(node.property) && node.property.name === 'value';
-  if (!isPropertyValue && isIdentifier(node.object) && variableFromReactiveFunctions.includes(node.object.name)) {
+  if (isPropertyValue(node) && isIdentifier(node.object) && variableFromReactiveFunctions.includes(node.object.name)) {
     checkNodeAndReport(node.object, node.object.name, context, parserServices, checker);
   }
 }
