@@ -1,3 +1,15 @@
+## [1.0.5](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v1.0.4...v1.0.5) (2024-09-16)
+
+
+### Bug Fixes
+
+* **release:** remove successComment and failComment options ([432be66](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/commit/432be66887cbba096c3ffe250614321362bc793f))
+
+
+### Performance Improvements
+
+* improve performance with early return ([49bf943](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/commit/49bf94345592fdeb84bf032d2f7582c94d95a7cd))
+
 ## [1.0.4](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v1.0.3...v1.0.4) (2024-09-15)
 
 
