@@ -1,3 +1,5 @@
+## [1.0.6](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v1.0.5...v1.0.6) (2024-09-16)
+
 ## [1.0.5](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v1.0.4...v1.0.5) (2024-09-16)
 
 
