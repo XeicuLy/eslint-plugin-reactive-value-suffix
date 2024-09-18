@@ -9,6 +9,7 @@
   "engines": {
     "node": ">=18.0.0"
   },
+  "type": "module",
   "scripts": {
     "prebuild": "pnpm clean",
     "build": "tsc",
