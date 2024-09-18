@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { addToList } from '../../../src/rules/utils/arrayUtils';
+import { addToList } from '@/rules/utils/arrayUtils';
 
 describe('src/rules/utils/arrayUtils.ts', () => {
   it('adds items to an empty list', () => {
