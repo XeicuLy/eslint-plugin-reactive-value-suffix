@@ -10,10 +10,9 @@ export default [
       'node_modules/**',
       'coverage/**',
       'eslint.config.mjs',
-      'vitest.config.ts',
+      'vitest.config.mts',
       'prettier.config.mjs',
       'commitlint.config.cts',
-      'vite.config.ts',
     ],
     languageOptions: {
       parser: '@typescript-eslint/parser',
