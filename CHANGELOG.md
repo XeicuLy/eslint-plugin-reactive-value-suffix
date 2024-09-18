@@ -1,3 +1,10 @@
+## [1.0.8](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v1.0.7...v1.0.8) (2024-09-18)
+
+
+### Bug Fixes
+
+* **package:** remove "type" field from package.json ([1f98c7a](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/commit/1f98c7a79ac80ba1bc1abdb3c1dc997fa3c54e31))
+
 ## [1.0.7](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v1.0.6...v1.0.7) (2024-09-18)
 
 ## [1.0.6](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v1.0.5...v1.0.6) (2024-09-16)
