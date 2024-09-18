@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "module": "CommonJS",
-    "target": "ES2023",
+    "target": "ES6",
+    "lib": ["ESNext"],
     "rootDir": "src",
     "outDir": "dist",
     "declaration": true,
@@ -10,7 +11,7 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "moduleResolution": "Node",
+    "moduleResolution": "Node10",
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "skipLibCheck": true,

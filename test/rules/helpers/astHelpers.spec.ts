@@ -10,7 +10,7 @@ import {
   addArgumentsToList,
   addReactiveVariables,
   isMatchingFunctionName,
-} from '../../../src/rules/helpers/astHelpers'; // Replace with the correct path to your functions
+} from '@/rules/helpers/astHelpers';
 import { TSESTree } from '@typescript-eslint/utils';
 
 describe('Node Type Checking Functions', () => {
