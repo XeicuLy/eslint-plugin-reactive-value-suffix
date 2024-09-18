@@ -1,3 +1,12 @@
+## [1.0.9](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v1.0.8...v1.0.9) (2024-09-18)
+
+
+### Bug Fixes
+
+* **eslint:** update ignored files in eslint.config.mjs ([e18287d](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/commit/e18287dd82b9f8a64efc4b0ea1f3bdf03df6df32))
+* **releaserc:** update branches in releaserc.yaml ([a7e973a](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/commit/a7e973a1ac6be9a05e540892a5e9ec1980bc0ee1))
+* **workflows:** update release.yaml to include main branch ([7f0e6d2](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/commit/7f0e6d22e41bb5bce2280bed93034ed04fe56106))
+
 ## [1.0.8](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v1.0.7...v1.0.8) (2024-09-18)
 
 
