@@ -41,6 +41,7 @@ const {
   BlockStatement,
   ArrowFunctionExpression,
   Literal,
+  ExpressionStatement,
 } = TSESTree.AST_NODE_TYPES;
 
 afterEach(() => {
@@ -487,7 +488,7 @@ describe('src/rules/helpers/astHelpers.ts', () => {
         type: CallExpression,
         callee: { type: Identifier, name: 'someFunction' },
         arguments: [{ type: Identifier, name: 'arg1' }],
-      } as unknown as TSESTree.CallExpression;
+      } as TSESTree.CallExpression;
 
       vi.spyOn(astHelpers, 'getAncestorCallExpression').mockReturnValue(callExpression);
       vi.spyOn(astHelpers, 'isIdentifier').mockReturnValue(true);
@@ -546,7 +547,7 @@ describe('src/rules/helpers/astHelpers.ts', () => {
         type: CallExpression,
         callee: { type: Literal, value: 'nonIdentifier' },
         arguments: [node],
-      } as unknown as TSESTree.CallExpression;
+      } as TSESTree.CallExpression;
 
       vi.spyOn(astHelpers, 'getAncestorCallExpression').mockReturnValue(callExpression);
       vi.spyOn(astHelpers, 'isIdentifier').mockReturnValue(false);
@@ -562,7 +563,7 @@ describe('src/rules/helpers/astHelpers.ts', () => {
         type: CallExpression,
         callee: { type: Identifier, name: 'differentFunction' },
         arguments: [node],
-      } as unknown as TSESTree.CallExpression;
+      } as TSESTree.CallExpression;
 
       vi.spyOn(astHelpers, 'getAncestorCallExpression').mockReturnValue(callExpression);
       vi.spyOn(astHelpers, 'isIdentifier').mockReturnValue(true);
@@ -627,7 +628,7 @@ describe('src/rules/helpers/astHelpers.ts', () => {
       const arrayExpression = {
         type: ArrayExpression,
         elements: [node],
-      } as unknown as TSESTree.ArrayExpression;
+      } as TSESTree.ArrayExpression;
 
       const callExpression = node.parent as TSESTree.CallExpression;
       callExpression.arguments.push(arrayExpression);
@@ -660,7 +661,7 @@ describe('src/rules/helpers/astHelpers.ts', () => {
       const callExpression = {
         ...node.parent,
         callee: { type: Identifier, name: 'notWatch' },
-      } as unknown as TSESTree.CallExpression;
+      } as TSESTree.CallExpression;
 
       vi.spyOn(astHelpers, 'getAncestorCallExpression').mockReturnValue(callExpression);
       vi.spyOn(astHelpers, 'isIdentifier').mockReturnValue(true);
@@ -699,12 +700,12 @@ describe('src/rules/helpers/astHelpers.ts', () => {
 
     it('should return true if node.init is a call expression and callee is in the function names list', () => {
       const node = {
-        type: 'VariableDeclarator',
+        type: VariableDeclarator,
         init: {
-          type: 'CallExpression',
-          callee: { type: 'Identifier', name: 'myFunction' },
+          type: CallExpression,
+          callee: { type: Identifier, name: 'myFunction' },
         },
-      } as unknown as TSESTree.VariableDeclarator;
+      } as TSESTree.VariableDeclarator;
 
       const functionNames = ['myFunction'];
       const result = isFunctionCall(node, functionNames);
@@ -715,12 +716,12 @@ describe('src/rules/helpers/astHelpers.ts', () => {
       vi.spyOn(astHelpers, 'isCallExpression').mockReturnValue(false);
 
       const node = {
-        type: 'VariableDeclarator',
+        type: VariableDeclarator,
         init: {
           type: Literal,
           value: 'someValue',
         },
-      } as unknown as TSESTree.VariableDeclarator;
+      } as TSESTree.VariableDeclarator;
 
       const functionNames = ['myFunction'];
       const result = isFunctionCall(node, functionNames);
@@ -731,12 +732,12 @@ describe('src/rules/helpers/astHelpers.ts', () => {
       vi.spyOn(astHelpers, 'isIdentifier').mockReturnValue(false);
 
       const node = {
-        type: 'VariableDeclarator',
+        type: VariableDeclarator,
         init: {
-          type: 'CallExpression',
+          type: CallExpression,
           callee: { type: Literal, value: 'someValue' },
         },
-      } as unknown as TSESTree.VariableDeclarator;
+      } as TSESTree.VariableDeclarator;
 
       const functionNames = ['myFunction'];
       const result = isFunctionCall(node, functionNames);
@@ -745,12 +746,12 @@ describe('src/rules/helpers/astHelpers.ts', () => {
 
     it('should return false if callee name is not in the function names list', () => {
       const node = {
-        type: 'VariableDeclarator',
+        type: VariableDeclarator,
         init: {
-          type: 'CallExpression',
-          callee: { type: 'Identifier', name: 'otherFunction' },
+          type: CallExpression,
+          callee: { type: Identifier, name: 'otherFunction' },
         },
-      } as unknown as TSESTree.VariableDeclarator;
+      } as TSESTree.VariableDeclarator;
 
       const functionNames = ['myFunction'];
       const result = isFunctionCall(node, functionNames);
@@ -765,33 +766,33 @@ describe('src/rules/helpers/astHelpers.ts', () => {
 
     it('should return the first CallExpression node when found', () => {
       const node = {
-        type: 'Identifier',
+        type: Identifier,
         parent: {
-          type: 'ExpressionStatement',
+          type: ExpressionStatement,
           parent: {
-            type: 'CallExpression',
-            callee: { type: 'Identifier', name: 'myFunction' },
+            type: CallExpression,
+            callee: { type: Identifier, name: 'myFunction' },
           },
         },
-      } as unknown as TSESTree.Node;
+      } as TSESTree.Node;
 
       const result = getAncestorCallExpression(node);
       expect(result).toEqual({
-        type: 'CallExpression',
-        callee: { type: 'Identifier', name: 'myFunction' },
+        type: CallExpression,
+        callee: { type: Identifier, name: 'myFunction' },
       });
     });
 
     it('should return null if no CallExpression is found', () => {
       const node = {
-        type: 'Identifier',
+        type: Identifier,
         parent: {
-          type: 'ExpressionStatement',
+          type: ExpressionStatement,
           parent: {
-            type: 'BlockStatement',
+            type: BlockStatement,
           },
         },
-      } as unknown as TSESTree.Node;
+      } as TSESTree.Node;
 
       const result = getAncestorCallExpression(node);
       expect(result).toBeNull();
@@ -799,7 +800,7 @@ describe('src/rules/helpers/astHelpers.ts', () => {
 
     it('should return null if the node has no parent', () => {
       const node = {
-        type: 'Identifier',
+        type: Identifier,
         parent: null,
       } as unknown as TSESTree.Node;
 
@@ -809,8 +810,8 @@ describe('src/rules/helpers/astHelpers.ts', () => {
 
     it('should return null if there are no ancestors', () => {
       const node = {
-        type: 'Identifier',
-      } as unknown as TSESTree.Node;
+        type: Identifier,
+      } as TSESTree.Node;
 
       const result = getAncestorCallExpression(node);
       expect(result).toBeNull();
@@ -819,8 +820,8 @@ describe('src/rules/helpers/astHelpers.ts', () => {
 
   describe('isPropertyValue', () => {
     beforeEach(() => {
-      vi.spyOn(astHelpers, 'isMemberExpression').mockImplementation((node) => node?.type === 'MemberExpression');
-      vi.spyOn(astHelpers, 'isIdentifier').mockImplementation((node) => node?.type === 'Identifier');
+      vi.spyOn(astHelpers, 'isMemberExpression').mockImplementation((node) => node?.type === MemberExpression);
+      vi.spyOn(astHelpers, 'isIdentifier').mockImplementation((node) => node?.type === Identifier);
     });
 
     afterEach(() => {
@@ -829,10 +830,10 @@ describe('src/rules/helpers/astHelpers.ts', () => {
 
     it('should return true when the node is a MemberExpression with property name "value"', () => {
       const node = {
-        type: 'MemberExpression',
-        object: { type: 'Identifier', name: 'refValue' },
-        property: { type: 'Identifier', name: 'value' },
-      } as unknown as TSESTree.Node;
+        type: MemberExpression,
+        object: { type: Identifier, name: 'refValue' },
+        property: { type: Identifier, name: 'value' },
+      } as TSESTree.Node;
 
       const result = isPropertyValue(node);
       expect(result).toBe(true);
@@ -842,7 +843,7 @@ describe('src/rules/helpers/astHelpers.ts', () => {
       const node = {
         type: Literal,
         value: 123,
-      } as unknown as TSESTree.Node;
+      } as TSESTree.Node;
 
       const result = isPropertyValue(node);
       expect(result).toBe(false);
@@ -850,10 +851,10 @@ describe('src/rules/helpers/astHelpers.ts', () => {
 
     it('should return false when the property is not an Identifier', () => {
       const node = {
-        type: 'MemberExpression',
-        object: { type: 'Identifier', name: 'refValue' },
+        type: MemberExpression,
+        object: { type: Identifier, name: 'refValue' },
         property: { type: Literal, value: 'value' },
-      } as unknown as TSESTree.Node;
+      } as TSESTree.Node;
 
       const result = isPropertyValue(node);
       expect(result).toBe(false);
@@ -861,10 +862,10 @@ describe('src/rules/helpers/astHelpers.ts', () => {
 
     it('should return false when the property name is not "value"', () => {
       const node = {
-        type: 'MemberExpression',
-        object: { type: 'Identifier', name: 'refValue' },
-        property: { type: 'Identifier', name: 'notValue' },
-      } as unknown as TSESTree.Node;
+        type: MemberExpression,
+        object: { type: Identifier, name: 'refValue' },
+        property: { type: Identifier, name: 'notValue' },
+      } as TSESTree.Node;
 
       const result = isPropertyValue(node);
       expect(result).toBe(false);
@@ -873,7 +874,7 @@ describe('src/rules/helpers/astHelpers.ts', () => {
 
   describe('isFunctionArgument', () => {
     it('should return true if the node name is in the function arguments list', () => {
-      const node = { type: 'Identifier', name: 'arg1' } as TSESTree.Identifier;
+      const node = { type: Identifier, name: 'arg1' } as TSESTree.Identifier;
       const functionArguments = ['arg1', 'arg2'];
 
       const result = isFunctionArgument(node, functionArguments);
@@ -881,7 +882,7 @@ describe('src/rules/helpers/astHelpers.ts', () => {
     });
 
     it('should return false if the node name is not in the function arguments list', () => {
-      const node = { type: 'Identifier', name: 'arg3' } as TSESTree.Identifier;
+      const node = { type: Identifier, name: 'arg3' } as TSESTree.Identifier;
       const functionArguments = ['arg1', 'arg2'];
 
       const result = isFunctionArgument(node, functionArguments);
@@ -889,7 +890,7 @@ describe('src/rules/helpers/astHelpers.ts', () => {
     });
 
     it('should return false if the function arguments list is empty', () => {
-      const node = { type: 'Identifier', name: 'arg1' } as TSESTree.Identifier;
+      const node = { type: Identifier, name: 'arg1' } as TSESTree.Identifier;
       const functionArguments: string[] = [];
 
       const result = isFunctionArgument(node, functionArguments);
@@ -897,7 +898,7 @@ describe('src/rules/helpers/astHelpers.ts', () => {
     });
 
     it('should return true if the node name matches exactly in the function arguments list', () => {
-      const node = { type: 'Identifier', name: 'arg' } as TSESTree.Identifier;
+      const node = { type: Identifier, name: 'arg' } as TSESTree.Identifier;
       const functionArguments = ['arg'];
 
       const result = isFunctionArgument(node, functionArguments);
@@ -905,7 +906,7 @@ describe('src/rules/helpers/astHelpers.ts', () => {
     });
 
     it('should return false if the node name partially matches any of the function arguments', () => {
-      const node = { type: 'Identifier', name: 'arg' } as TSESTree.Identifier;
+      const node = { type: Identifier, name: 'arg' } as TSESTree.Identifier;
       const functionArguments = ['argument'];
 
       const result = isFunctionArgument(node, functionArguments);
@@ -925,11 +926,11 @@ describe('src/rules/helpers/astHelpers.ts', () => {
 
     it('should return true if the node is a property and the key matches the identifier name', () => {
       const node = {
-        type: 'Property',
-        key: { type: 'Identifier', name: 'key1' },
+        type: Property,
+        key: { type: Identifier, name: 'key1' },
       } as TSESTree.Property;
 
-      const identifierNode = { type: 'Identifier', name: 'key1' } as TSESTree.Identifier;
+      const identifierNode = { type: Identifier, name: 'key1' } as TSESTree.Identifier;
 
       const result = isObjectKey(node, identifierNode);
       expect(result).toBe(true);
@@ -938,8 +939,8 @@ describe('src/rules/helpers/astHelpers.ts', () => {
     it('should return false if the node is not a property', () => {
       vi.spyOn(astHelpers, 'isProperty').mockReturnValue(false);
 
-      const node = { type: 'Identifier', name: 'key1' } as TSESTree.Identifier;
-      const identifierNode = { type: 'Identifier', name: 'key1' } as TSESTree.Identifier;
+      const node = { type: Identifier, name: 'key1' } as TSESTree.Identifier;
+      const identifierNode = { type: Identifier, name: 'key1' } as TSESTree.Identifier;
 
       const result = isObjectKey(node, identifierNode);
       expect(result).toBe(false);
@@ -949,11 +950,11 @@ describe('src/rules/helpers/astHelpers.ts', () => {
       vi.spyOn(astHelpers, 'isIdentifier').mockReturnValue(false);
 
       const node = {
-        type: 'Property',
+        type: Property,
         key: { type: Literal, value: 'key1' },
-      } as unknown as TSESTree.Property;
+      } as TSESTree.Property;
 
-      const identifierNode = { type: 'Identifier', name: 'key1' } as TSESTree.Identifier;
+      const identifierNode = { type: Identifier, name: 'key1' } as TSESTree.Identifier;
 
       const result = isObjectKey(node, identifierNode);
       expect(result).toBe(false);
@@ -961,11 +962,11 @@ describe('src/rules/helpers/astHelpers.ts', () => {
 
     it('should return false if the node key does not match the identifier name', () => {
       const node = {
-        type: 'Property',
-        key: { type: 'Identifier', name: 'key1' },
+        type: Property,
+        key: { type: Identifier, name: 'key1' },
       } as TSESTree.Property;
 
-      const identifierNode = { type: 'Identifier', name: 'key2' } as TSESTree.Identifier;
+      const identifierNode = { type: Identifier, name: 'key2' } as TSESTree.Identifier;
 
       const result = isObjectKey(node, identifierNode);
       expect(result).toBe(false);
@@ -985,7 +986,7 @@ describe('src/rules/helpers/astHelpers.ts', () => {
     it('should return true if the node is a MemberExpression', () => {
       vi.spyOn(astHelpers, 'isMemberExpression').mockReturnValue(true);
 
-      const node = { type: 'MemberExpression' } as TSESTree.MemberExpression;
+      const node = { type: MemberExpression } as TSESTree.MemberExpression;
 
       const result = isOriginalDeclaration(node);
       expect(result).toBe(true);
@@ -994,7 +995,7 @@ describe('src/rules/helpers/astHelpers.ts', () => {
     it('should return true if the node is a Property', () => {
       vi.spyOn(astHelpers, 'isProperty').mockReturnValue(true);
 
-      const node = { type: 'Property' } as TSESTree.Property;
+      const node = { type: Property } as TSESTree.Property;
 
       const result = isOriginalDeclaration(node);
       expect(result).toBe(true);
@@ -1004,7 +1005,7 @@ describe('src/rules/helpers/astHelpers.ts', () => {
       vi.spyOn(astHelpers, 'isMemberExpression').mockReturnValue(false);
       vi.spyOn(astHelpers, 'isProperty').mockReturnValue(false);
 
-      const node = { type: 'Identifier' } as TSESTree.Identifier;
+      const node = { type: Identifier } as TSESTree.Identifier;
 
       const result = isOriginalDeclaration(node);
       expect(result).toBe(false);
@@ -1014,9 +1015,9 @@ describe('src/rules/helpers/astHelpers.ts', () => {
   describe('isNodeDestructuredFunction', () => {
     it('should return true if the node is a destructured function call', () => {
       const node = {
-        type: 'CallExpression',
-        callee: { type: 'Identifier', name: 'useFetch' },
-      } as unknown as TSESTree.Node;
+        type: CallExpression,
+        callee: { type: Identifier, name: 'useFetch' },
+      } as TSESTree.Node;
 
       const destructuredFunctions = ['useFetch'];
 
@@ -1027,8 +1028,8 @@ describe('src/rules/helpers/astHelpers.ts', () => {
 
     it('should return false if the node is not a CallExpression', () => {
       const node = {
-        type: 'Identifier',
-        callee: { type: 'Identifier', name: 'useFetch' },
+        type: Identifier,
+        callee: { type: Identifier, name: 'useFetch' },
       } as unknown as TSESTree.Node;
 
       const destructuredFunctions = ['useFetch'];
@@ -1040,9 +1041,9 @@ describe('src/rules/helpers/astHelpers.ts', () => {
 
     it('should return false if the callee is not an Identifier', () => {
       const node = {
-        type: 'CallExpression',
+        type: CallExpression,
         callee: { type: Literal, value: 'useFetch' },
-      } as unknown as TSESTree.Node;
+      } as TSESTree.Node;
 
       const destructuredFunctions = ['useFetch'];
 
@@ -1053,9 +1054,9 @@ describe('src/rules/helpers/astHelpers.ts', () => {
 
     it('should return false if the function name is not in the list of destructured functions', () => {
       const node = {
-        type: 'CallExpression',
-        callee: { type: 'Identifier', name: 'fetchData' },
-      } as unknown as TSESTree.Node;
+        type: CallExpression,
+        callee: { type: Identifier, name: 'fetchData' },
+      } as TSESTree.Node;
 
       const destructuredFunctions = ['useFetch'];
 
@@ -1066,9 +1067,9 @@ describe('src/rules/helpers/astHelpers.ts', () => {
 
     it('should return true if the function name matches a destructured function', () => {
       const node = {
-        type: 'CallExpression',
-        callee: { type: 'Identifier', name: 'useData' },
-      } as unknown as TSESTree.Node;
+        type: CallExpression,
+        callee: { type: Identifier, name: 'useData' },
+      } as TSESTree.Node;
 
       const destructuredFunctions = ['useData'];
 
