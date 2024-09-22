@@ -50,6 +50,57 @@ afterEach(() => {
 
 describe('src/rules/helpers/astHelpers.ts', () => {
   describe('isNodeOfType', () => {
+    const testCases = [
+      {
+        func: isIdentifier,
+        name: 'isIdentifier',
+        validType: Identifier,
+        invalidType: CallExpression,
+      },
+      {
+        func: isObjectPattern,
+        name: 'isObjectPattern',
+        validType: ObjectPattern,
+        invalidType: Identifier,
+      },
+      {
+        func: isProperty,
+        name: 'isProperty',
+        validType: Property,
+        invalidType: Identifier,
+      },
+      {
+        func: isCallExpression,
+        name: 'isCallExpression',
+        validType: CallExpression,
+        invalidType: Identifier,
+      },
+      {
+        func: isVariableDeclarator,
+        name: 'isVariableDeclarator',
+        validType: VariableDeclarator,
+        invalidType: Identifier,
+      },
+      {
+        func: isMemberExpression,
+        name: 'isMemberExpression',
+        validType: MemberExpression,
+        invalidType: Identifier,
+      },
+      {
+        func: isAssignmentPattern,
+        name: 'isAssignmentPattern',
+        validType: AssignmentPattern,
+        invalidType: Identifier,
+      },
+      {
+        func: isArrayExpression,
+        name: 'isArrayExpression',
+        validType: ArrayExpression,
+        invalidType: Identifier,
+      },
+    ];
+
     it('should return true when node type matches the specified type', () => {
       const node = { type: Identifier } as TSESTree.Identifier;
       expect(isNodeOfType<TSESTree.Identifier>(node, Identifier)).toBe(true);
@@ -69,101 +120,19 @@ describe('src/rules/helpers/astHelpers.ts', () => {
       const node = null;
       expect(isNodeOfType<TSESTree.Identifier>(node, Identifier)).toBe(false);
     });
-  });
 
-  describe('isIdentifier', () => {
-    it('should return true when node is an Identifier', () => {
-      const node = { type: Identifier } as TSESTree.Identifier;
-      expect(isIdentifier(node)).toBe(true);
-    });
+    testCases.forEach(({ func, name, validType, invalidType }) => {
+      describe(name, () => {
+        it(`should return true when node is a ${name}`, () => {
+          const node = { type: validType } as TSESTree.Node;
+          expect(func(node)).toBe(true);
+        });
 
-    it('should return false when node is not an Identifier', () => {
-      const node = { type: CallExpression } as TSESTree.CallExpression;
-      expect(isIdentifier(node)).toBe(false);
-    });
-  });
-
-  describe('isObjectPattern', () => {
-    it('should return true when node is an ObjectPattern', () => {
-      const node = { type: ObjectPattern } as TSESTree.ObjectPattern;
-      expect(isObjectPattern(node)).toBe(true);
-    });
-
-    it('should return false when node is not an ObjectPattern', () => {
-      const node = { type: Identifier } as TSESTree.Identifier;
-      expect(isObjectPattern(node)).toBe(false);
-    });
-  });
-
-  describe('isProperty', () => {
-    it('should return true when node is a Property', () => {
-      const node = { type: Property } as TSESTree.Property;
-      expect(isProperty(node)).toBe(true);
-    });
-
-    it('should return false when node is not a Property', () => {
-      const node = { type: Identifier } as TSESTree.Identifier;
-      expect(isProperty(node)).toBe(false);
-    });
-  });
-
-  describe('isCallExpression', () => {
-    it('should return true when node is a CallExpression', () => {
-      const node = { type: CallExpression } as TSESTree.CallExpression;
-      expect(isCallExpression(node)).toBe(true);
-    });
-
-    it('should return false when node is not a CallExpression', () => {
-      const node = { type: Identifier } as TSESTree.Identifier;
-      expect(isCallExpression(node)).toBe(false);
-    });
-  });
-
-  describe('isVariableDeclarator', () => {
-    it('should return true when node is a VariableDeclarator', () => {
-      const node = { type: VariableDeclarator } as TSESTree.VariableDeclarator;
-      expect(isVariableDeclarator(node)).toBe(true);
-    });
-
-    it('should return false when node is not a VariableDeclarator', () => {
-      const node = { type: Identifier } as TSESTree.Identifier;
-      expect(isVariableDeclarator(node)).toBe(false);
-    });
-  });
-
-  describe('isMemberExpression', () => {
-    it('should return true when node is a MemberExpression', () => {
-      const node = { type: MemberExpression } as TSESTree.MemberExpression;
-      expect(isMemberExpression(node)).toBe(true);
-    });
-
-    it('should return false when node is not a MemberExpression', () => {
-      const node = { type: Identifier } as TSESTree.Identifier;
-      expect(isMemberExpression(node)).toBe(false);
-    });
-  });
-
-  describe('isAssignmentPattern', () => {
-    it('should return true when node is an AssignmentPattern', () => {
-      const node = { type: AssignmentPattern } as TSESTree.AssignmentPattern;
-      expect(isAssignmentPattern(node)).toBe(true);
-    });
-
-    it('should return false when node is not an AssignmentPattern', () => {
-      const node = { type: Identifier } as TSESTree.Identifier;
-      expect(isAssignmentPattern(node)).toBe(false);
-    });
-  });
-
-  describe('isArrayExpression', () => {
-    it('should return true when node is an ArrayExpression', () => {
-      const node = { type: ArrayExpression } as TSESTree.ArrayExpression;
-      expect(isArrayExpression(node)).toBe(true);
-    });
-
-    it('should return false when node is not an ArrayExpression', () => {
-      const node = { type: Identifier } as TSESTree.Identifier;
-      expect(isArrayExpression(node)).toBe(false);
+        it(`should return false when node is not a ${name}`, () => {
+          const node = { type: invalidType } as TSESTree.Node;
+          expect(func(node)).toBe(false);
+        });
+      });
     });
   });
 
@@ -171,12 +140,7 @@ describe('src/rules/helpers/astHelpers.ts', () => {
     it('should add identifier parameters to the list', () => {
       const node = {
         type: FunctionDeclaration,
-        id: null,
         params: [{ type: Identifier, name: 'param1' }] as TSESTree.Identifier[],
-        body: { type: BlockStatement, body: [] } as unknown as TSESTree.BlockStatement,
-        generator: false,
-        async: false,
-        expression: false,
       } as TSESTree.FunctionDeclaration;
 
       const list: string[] = [];
@@ -256,7 +220,7 @@ describe('src/rules/helpers/astHelpers.ts', () => {
       const node = {
         type: VariableDeclarator,
         id: { type: Identifier, name: 'reactiveVar' },
-        init: { type: CallExpression, callee: { type: Identifier, name: 'ref' }, arguments: [] },
+        init: { type: CallExpression, callee: { type: Identifier, name: 'ref' } },
       } as unknown as TSESTree.VariableDeclarator;
 
       const list: string[] = [];
