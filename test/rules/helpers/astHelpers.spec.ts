@@ -504,11 +504,15 @@ describe('src/rules/helpers/astHelpers.ts', () => {
       callExpression = node.parent as TSESTree.CallExpression;
     });
 
+    const setupMocks = (ancestorCallExpr: TSESTree.CallExpression, isId: boolean, isArrayExpr: boolean) => {
+      vi.spyOn(astHelpers, 'getAncestorCallExpression').mockReturnValue(ancestorCallExpr);
+      vi.spyOn(astHelpers, 'isIdentifier').mockReturnValue(isId);
+      vi.spyOn(astHelpers, 'isArrayExpression').mockReturnValue(isArrayExpr);
+    };
+
     it('should return true if the node is the first argument of the "watch" function', () => {
       callExpression.arguments.push(node);
-
-      vi.spyOn(astHelpers, 'getAncestorCallExpression').mockReturnValue(callExpression);
-      vi.spyOn(astHelpers, 'isIdentifier').mockReturnValue(true);
+      setupMocks(callExpression, true, false);
 
       const result = isWatchArgument(node);
       expect(result).toBe(true);
@@ -517,9 +521,66 @@ describe('src/rules/helpers/astHelpers.ts', () => {
     it('should return false if the node is not an argument of the "watch" function', () => {
       const otherNode = { type: Identifier, name: 'otherArg' } as TSESTree.Identifier;
       callExpression.arguments.push(otherNode);
+      setupMocks(callExpression, true, false);
 
-      vi.spyOn(astHelpers, 'getAncestorCallExpression').mockReturnValue(callExpression);
-      vi.spyOn(astHelpers, 'isIdentifier').mockReturnValue(true);
+      const result = isWatchArgument(otherNode);
+      expect(result).toBe(false);
+    });
+
+    it('should return false if the callExpression.callee is not an identifier', () => {
+      const callExpressionWithNonIdentifierCallee = {
+        ...callExpression,
+        callee: { type: Literal, value: 'notAnIdentifier' } as TSESTree.Literal,
+      };
+      setupMocks(callExpressionWithNonIdentifierCallee, false, false);
+
+      const result = isWatchArgument(node);
+      expect(result).toBe(false);
+    });
+
+    it('should return false if the callExpression.callee is not the "watch" function', () => {
+      const callExpressionWithDifferentCallee = {
+        ...callExpression,
+        callee: { type: Identifier, name: 'differentFunction' } as TSESTree.Identifier,
+      };
+      setupMocks(callExpressionWithDifferentCallee, true, false);
+
+      const result = isWatchArgument(node);
+      expect(result).toBe(false);
+    });
+
+    it('should return false if the callee.name is not "watch"', () => {
+      const callExpressionWithNonWatchCallee = {
+        ...callExpression,
+        callee: { type: Identifier, name: 'nonWatchFunction' } as TSESTree.Identifier,
+      };
+      setupMocks(callExpressionWithNonWatchCallee, true, false);
+
+      const result = isWatchArgument(node);
+      expect(result).toBe(false);
+    });
+
+    it('should return true if the node is part of an array expression in the "watch" function arguments', () => {
+      const arrayExpression = {
+        type: ArrayExpression,
+        elements: [node],
+      } as TSESTree.ArrayExpression;
+
+      callExpression.arguments.push(arrayExpression);
+      setupMocks(callExpression, true, true);
+
+      const result = isWatchArgument(node);
+      expect(result).toBe(true);
+    });
+
+    it('should return false if the node is not part of the array expression in the "watch" function arguments', () => {
+      const arrayExpression = {
+        type: ArrayExpression,
+        elements: [{ type: Identifier, name: 'otherNode' } as TSESTree.Identifier],
+      } as TSESTree.ArrayExpression;
+
+      callExpression.arguments.push(arrayExpression);
+      setupMocks(callExpression, true, true);
 
       const result = isWatchArgument(node);
       expect(result).toBe(false);
