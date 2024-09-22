@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-reactive-value-suffix",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "This ESLint plugin enforces adding `.value` when accessing reactive values in the Vue 3 Composition API.",
   "main": "dist/index.js",
   "files": [
