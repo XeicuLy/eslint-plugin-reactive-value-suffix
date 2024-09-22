@@ -25,7 +25,7 @@ const { AST_NODE_TYPES } = TSESTree;
  * @param {ASTNodeType} type Node type (e.g., Identifier, ObjectPattern, etc.)
  * @returns {node is T} Whether it matches the specified type
  */
-function isNodeOfType<T extends Node>(node: Node | undefined | null, type: ASTNodeType): node is T {
+export function isNodeOfType<T extends Node>(node: Node | undefined | null, type: ASTNodeType): node is T {
   return node !== undefined && node !== null && node.type === type;
 }
 
@@ -176,7 +176,11 @@ export function isArgumentOfFunction(node: Identifier, ignoredFunctionNames: str
   }
 
   const isMatchingName = isMatchingFunctionName(callExpression.callee.name, ignoredFunctionNames);
-  return isMatchingName && callExpression.arguments.includes(node);
+  const isArgument = callExpression.arguments.some(
+    (argument) => isIdentifier(argument) && argument.type === node.type && argument.name === node.name,
+  );
+
+  return isMatchingName && isArgument;
 }
 
 /**
@@ -214,7 +218,7 @@ export function isWatchArgument(node: Identifier): boolean {
  * @param {string[]} functionNames List of function names to check
  * @returns {boolean} Whether it is a function call
  */
-function isFunctionCall(node: VariableDeclarator, functionNames: string[]): boolean {
+export function isFunctionCall(node: VariableDeclarator, functionNames: string[]): boolean {
   return (
     isCallExpression(node.init) && isIdentifier(node.init.callee) && functionNames.includes(node.init.callee?.name)
   );
@@ -295,6 +299,6 @@ export function isDestructuredFunctionArgument(
  * @param {string[]} destructuredFunctions List of destructured functions
  * @returns {boolean} Whether the node is a destructured function call
  */
-function isNodeDestructuredFunction(node: Node, destructuredFunctions: string[]): boolean {
+export function isNodeDestructuredFunction(node: Node, destructuredFunctions: string[]): boolean {
   return isCallExpression(node) && isIdentifier(node.callee) && destructuredFunctions.includes(node.callee.name);
 }
