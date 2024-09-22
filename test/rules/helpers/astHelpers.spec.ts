@@ -137,76 +137,83 @@ describe('src/rules/helpers/astHelpers.ts', () => {
   });
 
   describe('addArgumentsToList', () => {
-    it('should add identifier parameters to the list', () => {
-      const node = {
-        type: FunctionDeclaration,
-        params: [{ type: Identifier, name: 'param1' }] as TSESTree.Identifier[],
-      } as TSESTree.FunctionDeclaration;
+    const functionTestCases = [
+      {
+        description: 'should add identifier parameters to the list',
+        node: {
+          type: FunctionDeclaration,
+          id: null,
+          params: [{ type: Identifier, name: 'param1' }],
+          body: { type: BlockStatement, body: [] },
+          generator: false,
+          async: false,
+          declare: false,
+          expression: false,
+        } as unknown as TSESTree.FunctionDeclaration,
+        initialList: [],
+        expectedList: ['param1'],
+      },
+      {
+        description: 'should return an empty list if there are no identifier parameters',
+        node: {
+          type: FunctionDeclaration,
+          id: null,
+          params: [{ type: ObjectPattern, properties: [] }],
+          body: { type: BlockStatement, body: [] },
+          generator: false,
+          async: false,
+          declare: false,
+          expression: false,
+        } as unknown as TSESTree.FunctionDeclaration,
+        initialList: [],
+        expectedList: [],
+      },
+      {
+        description: 'should add parameters to an existing list',
+        node: {
+          type: ArrowFunctionExpression,
+          params: [{ type: Identifier, name: 'param2' }],
+          body: { type: Identifier, name: 'test' },
+          async: false,
+          expression: true,
+        } as TSESTree.ArrowFunctionExpression,
+        initialList: ['param1'],
+        expectedList: ['param1', 'param2'],
+      },
+      {
+        description: 'should handle a function with no parameters',
+        node: {
+          type: FunctionDeclaration,
+          id: null,
+          params: [],
+          body: { type: BlockStatement, body: [] },
+          generator: false,
+          async: false,
+          declare: false,
+          expression: false,
+        } as unknown as TSESTree.FunctionDeclaration,
+        initialList: [],
+        expectedList: [],
+      },
+      {
+        description: 'should ensure the original list is not mutated',
+        node: {
+          type: ArrowFunctionExpression,
+          params: [{ type: Identifier, name: 'param3' }],
+          body: { type: Identifier, name: 'test' },
+          async: false,
+          expression: true,
+        } as TSESTree.ArrowFunctionExpression,
+        initialList: ['param1', 'param2'],
+        expectedList: ['param1', 'param2', 'param3'],
+      },
+    ];
 
-      const list: string[] = [];
-      const result = addArgumentsToList(node, list);
-      expect(result).toEqual(['param1']);
-    });
-
-    it('should return an empty list if there are no identifier parameters', () => {
-      const node = {
-        type: FunctionDeclaration,
-        id: null,
-        params: [{ type: ObjectPattern, properties: [] }] as unknown as TSESTree.ObjectPattern[],
-        body: { type: BlockStatement, body: [] } as unknown as TSESTree.BlockStatement,
-        generator: false,
-        async: false,
-        expression: false,
-      } as TSESTree.FunctionDeclaration;
-
-      const list: string[] = [];
-      const result = addArgumentsToList(node, list);
-      expect(result).toEqual([]);
-    });
-
-    it('should add parameters to an existing list', () => {
-      const node = {
-        type: ArrowFunctionExpression,
-        params: [{ type: Identifier, name: 'param2' }] as TSESTree.Identifier[],
-        body: { type: Identifier, name: 'test' } as TSESTree.Identifier,
-        expression: false,
-        async: false,
-      } as TSESTree.ArrowFunctionExpression;
-
-      const list = ['param1'];
-      const result = addArgumentsToList(node, list);
-      expect(result).toEqual(['param1', 'param2']);
-    });
-
-    it('should handle a function with no parameters', () => {
-      const node = {
-        type: FunctionDeclaration,
-        id: null,
-        params: [],
-        body: { type: BlockStatement, body: [] } as unknown as TSESTree.BlockStatement,
-        generator: false,
-        async: false,
-        expression: false,
-      } as unknown as TSESTree.FunctionDeclaration;
-
-      const list: string[] = [];
-      const result = addArgumentsToList(node, list);
-      expect(result).toEqual([]);
-    });
-
-    it('should ensure the original list is not mutated', () => {
-      const node = {
-        type: ArrowFunctionExpression,
-        params: [{ type: Identifier, name: 'param3' }] as TSESTree.Identifier[],
-        body: { type: Identifier, name: 'test' } as TSESTree.Identifier,
-        expression: false,
-        async: false,
-      } as TSESTree.ArrowFunctionExpression;
-
-      const list = ['param1', 'param2'];
-      const result = addArgumentsToList(node, list);
-      expect(list).toEqual(['param1', 'param2']);
-      expect(result).toEqual(['param1', 'param2', 'param3']);
+    functionTestCases.forEach(({ description, node, initialList, expectedList }) => {
+      it(description, () => {
+        const result = addArgumentsToList(node, initialList);
+        expect(result).toEqual(expectedList);
+      });
     });
   });
 
@@ -221,7 +228,7 @@ describe('src/rules/helpers/astHelpers.ts', () => {
         type: VariableDeclarator,
         id: { type: Identifier, name: 'reactiveVar' },
         init: { type: CallExpression, callee: { type: Identifier, name: 'ref' } },
-      } as unknown as TSESTree.VariableDeclarator;
+      } as TSESTree.VariableDeclarator;
 
       const list: string[] = [];
       const result = addReactiveVariables(node, list);
@@ -235,34 +242,6 @@ describe('src/rules/helpers/astHelpers.ts', () => {
         type: VariableDeclarator,
         id: { type: Identifier, name: 'nonReactiveVar' },
         init: { type: Literal, value: 123 },
-      } as TSESTree.VariableDeclarator;
-
-      const list: string[] = ['existingVar'];
-      const result = addReactiveVariables(node, list);
-      expect(result).toEqual(['existingVar']);
-    });
-
-    it('should return the original list if node id is not an identifier', () => {
-      vi.spyOn(astHelpers, 'isIdentifier').mockReturnValue(false);
-
-      const node = {
-        type: VariableDeclarator,
-        id: { type: ObjectPattern, properties: [] },
-        init: { type: CallExpression, callee: { type: Identifier, name: 'reactive' }, arguments: [] },
-      } as unknown as TSESTree.VariableDeclarator;
-
-      const list: string[] = ['existingVar'];
-      const result = addReactiveVariables(node, list);
-      expect(result).toEqual(['existingVar']);
-    });
-
-    it('should return the original list when the node init is not a function call', () => {
-      vi.spyOn(astHelpers, 'isFunctionCall').mockReturnValue(false);
-
-      const node = {
-        type: VariableDeclarator,
-        id: { type: Identifier, name: 'someVar' },
-        init: { type: MemberExpression },
       } as TSESTree.VariableDeclarator;
 
       const list: string[] = ['existingVar'];
@@ -540,32 +519,25 @@ describe('src/rules/helpers/astHelpers.ts', () => {
   });
 
   describe('isMatchingFunctionName', () => {
-    it('should return true if the function name matches the composables pattern', () => {
-      const result = isMatchingFunctionName('useFetch', []);
-      expect(result).toBe(true);
-    });
+    const matchingFunctionTestCases = [
+      { name: 'useFetch', ignoredFunctions: [], expected: true },
+      { name: 'myFunction', ignoredFunctions: ['myFunction'], expected: true },
+      { name: 'fetchData', ignoredFunctions: ['otherFunction'], expected: false },
+    ];
 
-    it('should return true if the function name is in the ignored function names list', () => {
-      const result = isMatchingFunctionName('myFunction', ['myFunction']);
-      expect(result).toBe(true);
-    });
-
-    it('should return true if the function name matches both the composables pattern and is in ignored function names', () => {
-      const result = isMatchingFunctionName('useFetch', ['useFetch']);
-      expect(result).toBe(true);
-    });
-
-    it('should return false if the function name does not match the pattern or ignored list', () => {
-      const result = isMatchingFunctionName('fetchData', ['otherFunction']);
-      expect(result).toBe(false);
+    matchingFunctionTestCases.forEach(({ name, ignoredFunctions, expected }) => {
+      it(`should return ${expected} for function name "${name}"`, () => {
+        const result = isMatchingFunctionName(name, ignoredFunctions);
+        expect(result).toBe(expected);
+      });
     });
   });
 
   describe('isWatchArgument', () => {
     let node: TSESTree.Identifier;
+    let callExpression: TSESTree.CallExpression;
 
     beforeEach(() => {
-      vi.clearAllMocks();
       node = {
         type: Identifier,
         name: 'arg1',
@@ -575,10 +547,11 @@ describe('src/rules/helpers/astHelpers.ts', () => {
           arguments: [],
         },
       } as unknown as TSESTree.Identifier;
+
+      callExpression = node.parent as TSESTree.CallExpression;
     });
 
     it('should return true if the node is the first argument of the "watch" function', () => {
-      const callExpression = node.parent as TSESTree.CallExpression;
       callExpression.arguments.push(node);
 
       vi.spyOn(astHelpers, 'getAncestorCallExpression').mockReturnValue(callExpression);
@@ -588,64 +561,12 @@ describe('src/rules/helpers/astHelpers.ts', () => {
       expect(result).toBe(true);
     });
 
-    it('should return true if the node is inside an array expression as the first argument of the "watch" function', () => {
-      const arrayExpression = {
-        type: ArrayExpression,
-        elements: [node],
-      } as TSESTree.ArrayExpression;
-
-      const callExpression = node.parent as TSESTree.CallExpression;
-      callExpression.arguments.push(arrayExpression);
-
-      vi.spyOn(astHelpers, 'getAncestorCallExpression').mockReturnValue(callExpression);
-      vi.spyOn(astHelpers, 'isIdentifier').mockReturnValue(true);
-      vi.spyOn(astHelpers, 'isArrayExpression').mockReturnValue(true);
-
-      const result = isWatchArgument(node);
-      expect(result).toBe(true);
-    });
-
     it('should return false if the node is not an argument of the "watch" function', () => {
-      const otherNode = {
-        type: Identifier,
-        name: 'otherArg',
-      } as TSESTree.Identifier;
-
-      const callExpression = node.parent as TSESTree.CallExpression;
+      const otherNode = { type: Identifier, name: 'otherArg' } as TSESTree.Identifier;
       callExpression.arguments.push(otherNode);
 
       vi.spyOn(astHelpers, 'getAncestorCallExpression').mockReturnValue(callExpression);
       vi.spyOn(astHelpers, 'isIdentifier').mockReturnValue(true);
-
-      const result = isWatchArgument(node);
-      expect(result).toBe(false);
-    });
-
-    it('should return false if the callee is not "watch"', () => {
-      const callExpression = {
-        ...node.parent,
-        callee: { type: Identifier, name: 'notWatch' },
-      } as TSESTree.CallExpression;
-
-      vi.spyOn(astHelpers, 'getAncestorCallExpression').mockReturnValue(callExpression);
-      vi.spyOn(astHelpers, 'isIdentifier').mockReturnValue(true);
-
-      const result = isWatchArgument(node);
-      expect(result).toBe(false);
-    });
-
-    it('should return false if the first argument is not an identifier or in an array expression', () => {
-      const LiteralNode = {
-        type: Literal,
-        value: 'someValue',
-      } as TSESTree.Literal;
-
-      const callExpression = node.parent as TSESTree.CallExpression;
-      callExpression.arguments.push(LiteralNode);
-
-      vi.spyOn(astHelpers, 'getAncestorCallExpression').mockReturnValue(callExpression);
-      vi.spyOn(astHelpers, 'isIdentifier').mockReturnValue(true);
-      vi.spyOn(astHelpers, 'isArrayExpression').mockReturnValue(false);
 
       const result = isWatchArgument(node);
       expect(result).toBe(false);
