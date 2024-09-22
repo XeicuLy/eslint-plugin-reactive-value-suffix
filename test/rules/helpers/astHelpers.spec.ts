@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import {
+import { TSESTree } from '@typescript-eslint/utils';
+import * as astHelpers from '@/rules/helpers/astHelpers';
+
+const {
   isNodeOfType,
   isIdentifier,
   isObjectPattern,
@@ -23,9 +26,7 @@ import {
   isObjectKey,
   isOriginalDeclaration,
   isNodeDestructuredFunction,
-} from '@/rules/helpers/astHelpers';
-import { TSESTree } from '@typescript-eslint/utils';
-import * as astHelpers from '@/rules/helpers/astHelpers';
+} = astHelpers;
 
 const {
   Identifier,
