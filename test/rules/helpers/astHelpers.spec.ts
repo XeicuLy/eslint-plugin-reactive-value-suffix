@@ -26,6 +26,7 @@ const {
   isObjectKey,
   isOriginalDeclaration,
   isNodeDestructuredFunction,
+  isDestructuredFunctionArgument,
 } = astHelpers;
 
 const {
@@ -886,6 +887,55 @@ describe('src/rules/helpers/astHelpers.ts', () => {
         const result = isNodeDestructuredFunction(node as TSESTree.Node, destructuredFunctions);
         expect(result).toBe(expected);
       });
+    });
+  });
+
+  describe('isDestructuredFunctionArgument', () => {
+    const destructuredFunctions = ['useFetch', 'useData'];
+
+    beforeEach(() => {
+      vi.spyOn(astHelpers, 'isNodeDestructuredFunction').mockImplementation((node, functions) =>
+        functions.includes((node as TSESTree.Identifier).name),
+      );
+    });
+
+    it('should return true if the parent is a destructured function', () => {
+      const parent = {
+        type: CallExpression,
+        callee: { type: Identifier, name: 'useFetch' },
+      } as TSESTree.CallExpression;
+      const grandParent = undefined;
+
+      const result = isDestructuredFunctionArgument(parent, grandParent, destructuredFunctions);
+      expect(result).toBe(true);
+    });
+
+    it('should return true if the grandParent is a destructured function', () => {
+      const parent = {
+        type: CallExpression,
+        callee: { type: Identifier, name: 'fetchData' },
+      } as TSESTree.CallExpression;
+      const grandParent = {
+        type: CallExpression,
+        callee: { type: Identifier, name: 'useData' },
+      } as TSESTree.CallExpression;
+
+      const result = isDestructuredFunctionArgument(parent, grandParent, destructuredFunctions);
+      expect(result).toBe(true);
+    });
+
+    it('should return false if neither parent nor grandParent is a destructured function', () => {
+      const parent = {
+        type: CallExpression,
+        callee: { type: Identifier, name: 'fetchData' },
+      } as TSESTree.CallExpression;
+      const grandParent = {
+        type: CallExpression,
+        callee: { type: Identifier, name: 'otherFunction' },
+      } as TSESTree.CallExpression;
+
+      const result = isDestructuredFunctionArgument(parent, grandParent, destructuredFunctions);
+      expect(result).toBe(false);
     });
   });
 });
