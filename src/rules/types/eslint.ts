@@ -13,6 +13,7 @@ type RestElement = TSESTree.RestElement;
 type ObjectPattern = TSESTree.ObjectPattern;
 type AssignmentPattern = TSESTree.AssignmentPattern;
 type ArrayExpression = TSESTree.ArrayExpression;
+type TSNonNullExpression = TSESTree.TSNonNullExpression;
 
 type RuleListener = TSESLint.RuleListener;
 
@@ -31,4 +32,5 @@ export type {
   ObjectPattern,
   AssignmentPattern,
   ArrayExpression,
+  TSNonNullExpression,
 };

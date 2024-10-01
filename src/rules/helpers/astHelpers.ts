@@ -14,6 +14,7 @@ import type {
   ASTNodeType,
   AssignmentPattern,
   ArrayExpression,
+  TSNonNullExpression,
 } from '../types/eslint';
 
 const { AST_NODE_TYPES } = TSESTree;
@@ -92,6 +93,14 @@ export const isAssignmentPattern = (node: Node | undefined): node is AssignmentP
  */
 export const isArrayExpression = (node: Node | undefined): node is ArrayExpression =>
   isNodeOfType<ArrayExpression>(node, AST_NODE_TYPES.ArrayExpression);
+
+/**
+ * Checks if the node's parent is a TSNonNullExpression
+ * @param {Node} node - The node to check
+ * @returns {node is TSNonNullExpression} - True if the parent is a TSNonNullExpression, false otherwise
+ */
+export const isParentNonNullAssertion = (node: Node): node is TSNonNullExpression =>
+  isNodeOfType<TSNonNullExpression>(node.parent, AST_NODE_TYPES.TSNonNullExpression);
 
 /**
  * Add function parameters to a list

@@ -17,6 +17,7 @@ import {
   isOriginalDeclaration,
   isDestructuredFunctionArgument,
   isIdentifier,
+  isParentNonNullAssertion,
 } from './helpers/astHelpers';
 
 type MessageId = 'requireValueSuffix';
@@ -45,7 +46,10 @@ function checkNodeAndReport(
   const type = checker.getTypeAtLocation(tsNode);
   const typeName = checker.typeToString(type);
 
-  if (typeName.includes('Ref') && !typeName.includes('.value')) {
+  const isRefType = typeName.includes('Ref');
+  const hasMissingValueSuffix = !typeName.includes('.value');
+
+  if (isRefType && hasMissingValueSuffix && !isParentNonNullAssertion(node)) {
     context.report({
       node,
       messageId: 'requireValueSuffix',
