@@ -1,8 +1,6 @@
 name: Release
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 permissions:
   contents: write
 jobs:
@@ -27,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install
         env:
-          HUSKY: 0
+          HUSKY: 0 # Disable Husky hooks during CI/CD
 
       - name: Build
         run: pnpm build
@@ -41,7 +39,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          HUSKY: 0
+          HUSKY: 0 # Disable Husky hooks during CI/CD
 
       - name: Release
         if: success()

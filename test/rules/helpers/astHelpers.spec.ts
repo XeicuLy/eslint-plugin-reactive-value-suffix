@@ -27,6 +27,7 @@ const {
   isOriginalDeclaration,
   isNodeDestructuredFunction,
   isDestructuredFunctionArgument,
+  isParentNonNullAssertion,
 } = astHelpers;
 
 const {
@@ -43,6 +44,7 @@ const {
   ArrowFunctionExpression,
   Literal,
   ExpressionStatement,
+  TSNonNullExpression,
 } = TSESTree.AST_NODE_TYPES;
 
 afterEach(() => {
@@ -102,37 +104,53 @@ describe('src/rules/helpers/astHelpers.ts', () => {
       },
     ];
 
-    it('should return true when node type matches the specified type', () => {
-      const node = { type: Identifier } as TSESTree.Identifier;
-      expect(isNodeOfType<TSESTree.Identifier>(node, Identifier)).toBe(true);
+    function testNodeOfType<T extends TSESTree.Node>(
+      node: T | undefined | null,
+      type: TSESTree.AST_NODE_TYPES,
+      expected: boolean,
+    ) {
+      it(`should return ${expected} when node type is ${type}`, () => {
+        expect(isNodeOfType<T>(node, type)).toBe(expected);
+      });
+    }
+
+    describe('Basic isNodeOfType functionality', () => {
+      testNodeOfType({ type: Identifier } as TSESTree.Identifier, Identifier, true);
+      testNodeOfType({ type: ObjectPattern } as TSESTree.ObjectPattern, Identifier, false);
+      testNodeOfType(undefined, Identifier, false);
+      testNodeOfType(null, Identifier, false);
     });
 
-    it('should return false when node type does not match the specified type', () => {
-      const node = { type: ObjectPattern } as TSESTree.ObjectPattern;
-      expect(isNodeOfType<TSESTree.Identifier>(node, Identifier)).toBe(false);
-    });
+    describe('Node type validation', () => {
+      testCases.forEach(({ func, name, validType, invalidType }) => {
+        describe(name, () => {
+          it(`should return true for valid ${name}`, () => {
+            const node = { type: validType } as TSESTree.Node;
+            expect(func(node)).toBe(true);
+          });
 
-    it('should return false when node is undefined', () => {
-      const node = undefined;
-      expect(isNodeOfType<TSESTree.Identifier>(node, Identifier)).toBe(false);
-    });
-
-    it('should return false when node is null', () => {
-      const node = null;
-      expect(isNodeOfType<TSESTree.Identifier>(node, Identifier)).toBe(false);
-    });
-
-    testCases.forEach(({ func, name, validType, invalidType }) => {
-      describe(name, () => {
-        it(`should return true when node is a ${name}`, () => {
-          const node = { type: validType } as TSESTree.Node;
-          expect(func(node)).toBe(true);
+          it(`should return false for invalid ${name}`, () => {
+            const node = { type: invalidType } as TSESTree.Node;
+            expect(func(node)).toBe(false);
+          });
         });
+      });
+    });
 
-        it(`should return false when node is not a ${name}`, () => {
-          const node = { type: invalidType } as TSESTree.Node;
-          expect(func(node)).toBe(false);
-        });
+    describe('isParentNonNullAssertion', () => {
+      it('should return true when parent is a TSNonNullExpression', () => {
+        const node = { parent: { type: TSNonNullExpression } } as TSESTree.Node;
+        expect(isParentNonNullAssertion(node)).toBe(true);
+      });
+
+      it('should return false when parent is not a TSNonNullExpression', () => {
+        const node = { parent: { type: CallExpression } } as TSESTree.Node;
+        expect(isParentNonNullAssertion(node)).toBe(false);
+      });
+
+      it('should return false when parent is undefined', () => {
+        const node = { parent: undefined } as TSESTree.Node;
+        expect(isParentNonNullAssertion(node)).toBe(false);
       });
     });
   });

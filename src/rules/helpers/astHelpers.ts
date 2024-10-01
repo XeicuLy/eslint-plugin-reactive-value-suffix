@@ -1,6 +1,6 @@
 import { addToList } from '../utils/arrayUtils';
 import { COMPOSABLES_FUNCTION_PATTERN, REACTIVE_FUNCTIONS } from '../constants/constant.js';
-import { TSESTree } from '@typescript-eslint/utils';
+import { AST_NODE_TYPES } from '@typescript-eslint/utils';
 import type {
   Node,
   ArrowFunctionExpression,
@@ -14,9 +14,20 @@ import type {
   ASTNodeType,
   AssignmentPattern,
   ArrayExpression,
+  TSNonNullExpression,
 } from '../types/eslint';
 
-const { AST_NODE_TYPES } = TSESTree;
+const {
+  Identifier,
+  ObjectPattern,
+  Property,
+  CallExpression,
+  VariableDeclarator,
+  MemberExpression,
+  AssignmentPattern,
+  ArrayExpression,
+  TSNonNullExpression,
+} = AST_NODE_TYPES;
 
 /**
  * Function to check whether the specified node is of a particular type
@@ -34,8 +45,7 @@ export function isNodeOfType<T extends Node>(node: Node | undefined | null, type
  * @param {Node | undefined} node The node to check
  * @returns {node is Identifier} Whether the node is an Identifier
  */
-export const isIdentifier = (node: Node | undefined): node is Identifier =>
-  isNodeOfType<Identifier>(node, AST_NODE_TYPES.Identifier);
+export const isIdentifier = (node: Node | undefined): node is Identifier => isNodeOfType<Identifier>(node, Identifier);
 
 /**
  * Function to check whether a node is an ObjectPattern
@@ -43,15 +53,14 @@ export const isIdentifier = (node: Node | undefined): node is Identifier =>
  * @returns {node is ObjectPattern} Whether the node is an ObjectPattern
  */
 export const isObjectPattern = (node: Node | undefined): node is ObjectPattern =>
-  isNodeOfType<ObjectPattern>(node, AST_NODE_TYPES.ObjectPattern);
+  isNodeOfType<ObjectPattern>(node, ObjectPattern);
 
 /**
  * Function to check whether a node is a Property
  * @param {Node | undefined} node The node to check
  * @returns {node is Property} Whether the node is a Property
  */
-export const isProperty = (node: Node | undefined): node is Property =>
-  isNodeOfType<Property>(node, AST_NODE_TYPES.Property);
+export const isProperty = (node: Node | undefined): node is Property => isNodeOfType<Property>(node, Property);
 
 /**
  * Function to check whether a node is a CallExpression (function call)
@@ -59,7 +68,7 @@ export const isProperty = (node: Node | undefined): node is Property =>
  * @returns {node is CallExpression} Whether the node is a CallExpression
  */
 export const isCallExpression = (node: Node | undefined | null): node is CallExpression =>
-  isNodeOfType<CallExpression>(node, AST_NODE_TYPES.CallExpression);
+  isNodeOfType<CallExpression>(node, CallExpression);
 
 /**
  * Function to check whether a node is a VariableDeclarator (variable declaration)
@@ -67,7 +76,7 @@ export const isCallExpression = (node: Node | undefined | null): node is CallExp
  * @returns {node is VariableDeclarator} Whether the node is a VariableDeclarator
  */
 export const isVariableDeclarator = (node: Node | undefined): node is VariableDeclarator =>
-  isNodeOfType<VariableDeclarator>(node, AST_NODE_TYPES.VariableDeclarator);
+  isNodeOfType<VariableDeclarator>(node, VariableDeclarator);
 
 /**
  * Function to check whether a node is a MemberExpression
@@ -75,7 +84,7 @@ export const isVariableDeclarator = (node: Node | undefined): node is VariableDe
  * @returns {node is MemberExpression} Whether the node is a MemberExpression
  */
 export const isMemberExpression = (node: Node | undefined): node is MemberExpression =>
-  isNodeOfType<MemberExpression>(node, AST_NODE_TYPES.MemberExpression);
+  isNodeOfType<MemberExpression>(node, MemberExpression);
 
 /**
  * Function to check whether a node is an AssignmentPattern
@@ -83,7 +92,7 @@ export const isMemberExpression = (node: Node | undefined): node is MemberExpres
  * @returns {node is AssignmentPattern} Whether the node is an AssignmentPattern
  */
 export const isAssignmentPattern = (node: Node | undefined): node is AssignmentPattern =>
-  isNodeOfType<AssignmentPattern>(node, AST_NODE_TYPES.AssignmentPattern);
+  isNodeOfType<AssignmentPattern>(node, AssignmentPattern);
 
 /**
  * Function to check whether a node is an ArrayExpression
@@ -91,7 +100,15 @@ export const isAssignmentPattern = (node: Node | undefined): node is AssignmentP
  * @returns {node is ArrayExpression} Whether the node is an ArrayExpression
  */
 export const isArrayExpression = (node: Node | undefined): node is ArrayExpression =>
-  isNodeOfType<ArrayExpression>(node, AST_NODE_TYPES.ArrayExpression);
+  isNodeOfType<ArrayExpression>(node, ArrayExpression);
+
+/**
+ * Checks if the node's parent is a TSNonNullExpression
+ * @param {Node} node - The node whose parent to check
+ * @returns {node is TSNonNullExpression} - True if the parent is a TSNonNullExpression, false otherwise
+ */
+export const isParentNonNullAssertion = (node: Node): node is TSNonNullExpression =>
+  isNodeOfType<TSNonNullExpression>(node.parent, TSNonNullExpression);
 
 /**
  * Add function parameters to a list
