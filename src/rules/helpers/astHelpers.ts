@@ -1,6 +1,6 @@
 import { addToList } from '../utils/arrayUtils';
 import { COMPOSABLES_FUNCTION_PATTERN, REACTIVE_FUNCTIONS } from '../constants/constant.js';
-import { TSESTree } from '@typescript-eslint/utils';
+import { AST_NODE_TYPES } from '@typescript-eslint/utils';
 import type {
   Node,
   ArrowFunctionExpression,
@@ -27,7 +27,7 @@ const {
   AssignmentPattern,
   ArrayExpression,
   TSNonNullExpression,
-} = TSESTree.AST_NODE_TYPES;
+} = AST_NODE_TYPES;
 
 /**
  * Function to check whether the specified node is of a particular type
