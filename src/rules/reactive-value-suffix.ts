@@ -48,8 +48,9 @@ function checkNodeAndReport(
 
   const isRefType = typeName.includes('Ref');
   const hasMissingValueSuffix = !typeName.includes('.value');
+  const isNotNonNullAssertion = !isParentNonNullAssertion(node);
 
-  if (isRefType && hasMissingValueSuffix && !isParentNonNullAssertion(node)) {
+  if (isRefType && hasMissingValueSuffix && isNotNonNullAssertion) {
     context.report({
       node,
       messageId: 'requireValueSuffix',
