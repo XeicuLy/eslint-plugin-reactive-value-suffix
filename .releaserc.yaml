@@ -4,26 +4,33 @@ plugins:
       releaseRules:
         - type: 'feat'
           release: 'minor'
+          recommendation: 'recommended'
         - type: 'fix'
           release: 'patch'
+          recommendation: 'recommended'
         - type: 'perf'
           release: 'patch'
+          recommendation: 'recommended'
         - type: 'docs'
           release: 'patch'
+          recommendation: 'optional'
         - type: 'style'
           release: false
         - type: 'refactor'
           release: 'patch'
+          recommendation: 'optional'
         - type: 'test'
           release: false
         - type: 'build'
           release: 'patch'
+          recommendation: 'optional'
         - type: 'ci'
           release: false
         - type: 'chore'
           release: false
         - type: 'revert'
           release: 'patch'
+          recommendation: 'recommended'
       parserOpts:
         headerPattern: "^(\\w*)(?:\\((.*)\\))?: (.*)$"
         headerCorrespondence:
