@@ -104,7 +104,7 @@ export const isArrayExpression = (node: Node | undefined): node is ArrayExpressi
 
 /**
  * Checks if the node's parent is a TSNonNullExpression
- * @param {Node} node - The node to check
+ * @param {Node} node - The node whose parent to check
  * @returns {node is TSNonNullExpression} - True if the parent is a TSNonNullExpression, false otherwise
  */
 export const isParentNonNullAssertion = (node: Node): node is TSNonNullExpression =>
