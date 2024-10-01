@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v1.0.10...v1.1.0) (2024-10-01)
+
+
+### Features
+
+* added a function to detect the non-null assertion operator ([84d513d](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/commit/84d513dd047527452218171dc73bc6778adefc31)), closes [#31](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/issues/31)
+
 ## [1.0.10](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v1.0.9...v1.0.10) (2024-09-22)
 
 ## [1.0.9](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v1.0.8...v1.0.9) (2024-09-18)
