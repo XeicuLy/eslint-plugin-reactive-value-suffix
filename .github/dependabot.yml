@@ -1,43 +1,25 @@
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for all configuration options:
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
 version: 2
 updates:
-  # Regular updates (weekly)
-  - package-ecosystem: 'pnpm'
+  - package-ecosystem: 'npm'
     directory: '/'
+    target-branch: 'main'
     schedule:
       interval: 'weekly'
       day: 'saturday'
       time: '09:00'
       timezone: 'Asia/Tokyo'
     commit-message:
-      prefix: 'package:'
-      prefix-development: 'package:'
-      include: true
-      subject: '{{dependency.name}} update'
-    open-pull-requests-limit: 10
-    allow:
-      - dependency-type: 'direct'
-        update-type: 'version-update:semver-major'
-      - dependency-type: 'direct'
-        update-type: 'version-update:semver-minor'
-      - dependency-type: 'direct'
-        update-type: 'version-update:semver-patch'
-    labels:
-      - 'dependencies'
-    automerge: false
-
-  # Security updates (daily)
-  - package-ecosystem: 'pnpm'
-    directory: '/'
-    schedule:
-      interval: 'daily'
-    commit-message:
-      prefix: 'security:'
-      include: true
-      subject: '{{dependency.name}} security update'
-    open-pull-requests-limit: 10
+      prefix: ':package: package(deps):'
+      prefix-development: ':package: package(dev-deps):'
+    open-pull-requests-limit: 5
     allow:
       - dependency-type: 'all'
-        update-type: 'security'
     labels:
+      - 'dependencies'
+      - 'dependabot'
       - 'security'
-    automerge: false
