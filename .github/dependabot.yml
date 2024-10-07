@@ -14,8 +14,8 @@ updates:
       time: '09:00'
       timezone: 'Asia/Tokyo'
     commit-message:
-      prefix: ':package: package(deps):'
-      prefix-development: ':package: package(dev-deps):'
+      prefix: 'package(deps):'
+      prefix-development: 'package(dev-deps):'
     open-pull-requests-limit: 5
     allow:
       - dependency-type: 'all'
