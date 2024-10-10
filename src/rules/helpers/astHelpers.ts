@@ -1,5 +1,5 @@
 import { addToList } from '../utils/arrayUtils';
-import { COMPOSABLES_FUNCTION_PATTERN, REACTIVE_FUNCTIONS } from '../constants/constant.js';
+import { COMPOSABLES_FUNCTION_PATTERN, REACTIVE_FUNCTIONS } from '../constants/constant';
 import { AST_NODE_TYPES } from '@typescript-eslint/utils';
 import type {
   Node,
