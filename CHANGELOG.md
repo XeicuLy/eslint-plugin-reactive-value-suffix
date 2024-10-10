@@ -1,3 +1,17 @@
+# [2.0.0](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v1.1.0...v2.0.0) (2024-10-10)
+
+
+### Bug Fixes
+
+* **rule:** reverse isPropertyValue check logic in checkMemberExpression ([44a5bc8](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/commit/44a5bc80349aa701c8df7dce005a9c4d310e5618)), closes [#37](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/issues/37)
+
+
+### BREAKING CHANGES
+
+* **rule:** The behavior of checkMemberExpression has changed.The rule now applies when
+isPropertyValue is false instead of true,which may affect logic dependent on this condition. This
+change is expected to ensure the plugin operates correctly as intended.
+
 # [1.1.0](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v1.0.10...v1.1.0) (2024-10-01)
 
 
