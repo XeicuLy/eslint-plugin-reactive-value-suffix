@@ -27,7 +27,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Run TypeScript type check
-        run: pnpm type-check
+        run: pnpm type-check:ci
 
   test:
     runs-on: ubuntu-latest

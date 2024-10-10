@@ -15,7 +15,7 @@
     "clean": "rimraf dist",
     "lint:ci": "eslint .",
     "format:ci": "prettier . --check",
-    "type-check": "tsc --noEmit",
+    "type-check:ci": "tsc --noEmit",
     "test": "vitest",
     "test:ui": "vitest --ui --coverage",
     "test:coverage": "vitest --coverage",
