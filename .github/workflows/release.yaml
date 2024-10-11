@@ -3,6 +3,14 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  issues: write
+  pull-requests: write
+
+env:
+  NODE_VERSION: 20.17.0
+  PNPM_VERSION: 9
+  HUSKY: 0
+
 jobs:
   release:
     name: Release
@@ -13,19 +21,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node.js and install dependencies
+        uses: ./.github/actions/install
         with:
-          node-version: 'lts/*'
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
-      - name: Install dependencies
-        run: pnpm install
-        env:
-          HUSKY: 0 # Disable Husky hooks during CI/CD
+          pnpm-version: ${{ env.PNPM_VERSION }}
+          node-version: ${{ env.NODE_VERSION }}
+          husky: ${{ env.HUSKY }}
 
       - name: Build
         run: pnpm build
@@ -39,12 +40,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          HUSKY: 0 # Disable Husky hooks during CI/CD
 
       - name: Release
         if: success()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          HUSKY: 0
         run: npx semantic-release
