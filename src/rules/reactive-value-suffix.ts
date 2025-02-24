@@ -20,20 +20,21 @@ import {
   isParentNonNullAssertion,
 } from './helpers/astHelpers';
 
-type MessageId = 'requireValueSuffix';
-export interface Options {
+interface Options {
   functionNamesToIgnoreValueCheck?: string[];
 }
+
+type MessageId = 'requireValueSuffix';
 type RuleContext = TSESLint.RuleContext<MessageId, Options[]>;
 type RuleModule = TSESLint.RuleModule<MessageId, Options[]>;
 
 /**
  * Checks the type of the specified node and reports necessary fixes
- * @param {Node} node - The node to check
- * @param {string} name - The name of the node
- * @param {RuleContext} context - The rule context
- * @param {ParserServices} parserServices - The parser services
- * @param {TypeChecker} checker - The TypeScript type checker
+ * @param node - The node to check
+ * @param name - The name of the node
+ * @param context - The rule context
+ * @param parserServices - The parser services
+ * @param checker - The TypeScript type checker
  */
 function checkNodeAndReport(
   node: Node,
@@ -61,15 +62,14 @@ function checkNodeAndReport(
 
 /**
  * Checks the identifier node and applies the rule
- * @param {Identifier} node - The identifier node to check
- * @param {string[]} reactiveVariables - List of reactive variables
- * @param {string[]} functionArguments - List of function arguments
- * @param {string[]} destructuredFunctions - List of destructured functions
- * @param {RuleContext} context - The rule context
- * @param {ParserServices} parserServices - The parser services
- * @param {TypeChecker} checker - The TypeScript type checker
- * @param {string[]} ignoredFunctionNames - List of function names to ignore
- * @returns {void}
+ * @param node - The identifier node to check
+ * @param reactiveVariables - List of reactive variables
+ * @param functionArguments - List of function arguments
+ * @param destructuredFunctions - List of destructured functions
+ * @param context - The rule context
+ * @param parserServices - The parser services
+ * @param checker - The TypeScript type checker
+ * @param ignoredFunctionNames - List of function names to ignore
  */
 function checkIdentifier(
   node: Identifier,
@@ -81,33 +81,36 @@ function checkIdentifier(
   checker: TypeChecker,
   ignoredFunctionNames: string[],
 ): void {
+  if (!node.parent) return;
+  if (!reactiveVariables.includes(node.name)) return;
+
   const parent = node.parent;
-  const grandParent = parent?.parent;
+  const grandParent = parent.parent;
 
   if (
-    !isVariableDeclarator(parent) &&
-    !isMemberExpression(parent) &&
-    !isObjectKey(parent, node) &&
-    !isFunctionArgument(node, functionArguments) &&
-    !isPropertyValue(parent) &&
-    !isOriginalDeclaration(parent) &&
-    !isWatchArgument(node) &&
-    !isArgumentOfFunction(node, ignoredFunctionNames) &&
-    !isDestructuredFunctionArgument(parent, grandParent, destructuredFunctions) &&
-    reactiveVariables.includes(node.name)
+    isVariableDeclarator(parent) ||
+    isMemberExpression(parent) ||
+    isObjectKey(parent, node) ||
+    isFunctionArgument(node, functionArguments) ||
+    isPropertyValue(parent) ||
+    isOriginalDeclaration(parent) ||
+    isWatchArgument(node) ||
+    isArgumentOfFunction(node, ignoredFunctionNames) ||
+    isDestructuredFunctionArgument(parent, grandParent, destructuredFunctions)
   ) {
-    checkNodeAndReport(node, node.name, context, parserServices, checker);
+    return;
   }
+
+  checkNodeAndReport(node, node.name, context, parserServices, checker);
 }
 
 /**
  * Checks the member expression node and applies the rule
- * @param {MemberExpression} node - The member expression node to check
- * @param {string[]} variableFromReactiveFunctions - List of variables from reactive functions
- * @param {RuleContext} context - The rule context
- * @param {ParserServices} parserServices - The parser services
- * @param {TypeChecker} checker - The TypeScript type checker
- * @returns {void}
+ * @param node - The member expression node to check
+ * @param variableFromReactiveFunctions - List of variables from reactive functions
+ * @param context - The rule context
+ * @param parserServices - The parser services
+ * @param checker - The TypeScript type checker
  */
 function checkMemberExpression(
   node: MemberExpression,
@@ -116,9 +119,15 @@ function checkMemberExpression(
   parserServices: ParserServices,
   checker: TypeChecker,
 ): void {
-  if (!isPropertyValue(node) && isIdentifier(node.object) && variableFromReactiveFunctions.includes(node.object.name)) {
-    checkNodeAndReport(node.object, node.object.name, context, parserServices, checker);
+  if (
+    isPropertyValue(node) ||
+    !isIdentifier(node.object) ||
+    !variableFromReactiveFunctions.includes(node.object.name)
+  ) {
+    return;
   }
+
+  checkNodeAndReport(node.object, node.object.name, context, parserServices, checker);
 }
 
 export const reactiveValueSuffix: RuleModule = {
@@ -149,8 +158,8 @@ export const reactiveValueSuffix: RuleModule = {
   defaultOptions: [{}],
   /**
    * Creates the implementation of the rule
-   * @param {RuleContext} context - The rule context
-   * @returns {RuleListener} The rule listener
+   * @param context - The rule context
+   * @returns The rule listener
    */
   create(context: RuleContext): RuleListener {
     const options: Options = context.options[0] || {};

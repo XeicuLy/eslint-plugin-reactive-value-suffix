@@ -32,114 +32,117 @@ const {
 /**
  * Function to check whether the specified node is of a particular type
  * @template T Type of the node
- * @param {Node | undefined | null} node The node to check
- * @param {ASTNodeType} type Node type (e.g., Identifier, ObjectPattern, etc.)
- * @returns {node is T} Whether it matches the specified type
+ * @param node The node to check
+ * @param type Node type (e.g., Identifier, ObjectPattern, etc.)
+ * @returns Whether it matches the specified type
  */
-export function isNodeOfType<T extends Node>(node: Node | undefined | null, type: ASTNodeType): node is T {
+export const isNodeOfType = <T extends Node>(node: Node | undefined | null, type: ASTNodeType): node is T => {
   return node !== undefined && node !== null && node.type === type;
-}
+};
 
 /**
  * Function to check whether a node is an Identifier
- * @param {Node | undefined} node The node to check
- * @returns {node is Identifier} Whether the node is an Identifier
+ * @param node The node to check
+ * @returns Whether the node is an Identifier
  */
 export const isIdentifier = (node: Node | undefined): node is Identifier => isNodeOfType<Identifier>(node, Identifier);
 
 /**
  * Function to check whether a node is an ObjectPattern
- * @param {Node | undefined} node The node to check
- * @returns {node is ObjectPattern} Whether the node is an ObjectPattern
+ * @param node The node to check
+ * @returns Whether the node is an ObjectPattern
  */
 export const isObjectPattern = (node: Node | undefined): node is ObjectPattern =>
   isNodeOfType<ObjectPattern>(node, ObjectPattern);
 
 /**
  * Function to check whether a node is a Property
- * @param {Node | undefined} node The node to check
- * @returns {node is Property} Whether the node is a Property
+ * @param node The node to check
+ * @returns Whether the node is a Property
  */
 export const isProperty = (node: Node | undefined): node is Property => isNodeOfType<Property>(node, Property);
 
 /**
  * Function to check whether a node is a CallExpression (function call)
- * @param {Node | undefined | null} node The node to check
- * @returns {node is CallExpression} Whether the node is a CallExpression
+ * @param node The node to check
+ * @returns Whether the node is a CallExpression
  */
 export const isCallExpression = (node: Node | undefined | null): node is CallExpression =>
   isNodeOfType<CallExpression>(node, CallExpression);
 
 /**
  * Function to check whether a node is a VariableDeclarator (variable declaration)
- * @param {Node | undefined} node The node to check
- * @returns {node is VariableDeclarator} Whether the node is a VariableDeclarator
+ * @param node The node to check
+ * @returns Whether the node is a VariableDeclarator
  */
 export const isVariableDeclarator = (node: Node | undefined): node is VariableDeclarator =>
   isNodeOfType<VariableDeclarator>(node, VariableDeclarator);
 
 /**
  * Function to check whether a node is a MemberExpression
- * @param {Node | undefined} node The node to check
- * @returns {node is MemberExpression} Whether the node is a MemberExpression
+ * @param node The node to check
+ * @returns Whether the node is a MemberExpression
  */
 export const isMemberExpression = (node: Node | undefined): node is MemberExpression =>
   isNodeOfType<MemberExpression>(node, MemberExpression);
 
 /**
  * Function to check whether a node is an AssignmentPattern
- * @param {Node | undefined} node The node to check
- * @returns {node is AssignmentPattern} Whether the node is an AssignmentPattern
+ * @param node The node to check
+ * @returns Whether the node is an AssignmentPattern
  */
 export const isAssignmentPattern = (node: Node | undefined): node is AssignmentPattern =>
   isNodeOfType<AssignmentPattern>(node, AssignmentPattern);
 
 /**
  * Function to check whether a node is an ArrayExpression
- * @param {Node | undefined} node The node to check
- * @returns {node is ArrayExpression} Whether the node is an ArrayExpression
+ * @param node The node to check
+ * @returns Whether the node is an ArrayExpression
  */
 export const isArrayExpression = (node: Node | undefined): node is ArrayExpression =>
   isNodeOfType<ArrayExpression>(node, ArrayExpression);
 
 /**
  * Checks if the node's parent is a TSNonNullExpression
- * @param {Node} node - The node whose parent to check
- * @returns {node is TSNonNullExpression} - True if the parent is a TSNonNullExpression, false otherwise
+ * @param node - The node whose parent to check
+ * @returns - True if the parent is a TSNonNullExpression, false otherwise
  */
 export const isParentNonNullAssertion = (node: Node): node is TSNonNullExpression =>
   isNodeOfType<TSNonNullExpression>(node.parent, TSNonNullExpression);
 
 /**
  * Add function parameters to a list
- * @param {FunctionDeclaration | ArrowFunctionExpression} node Function declaration
- * @param {string[]} list Existing list
- * @returns {string[]} List with parameters added
+ * @param node Function declaration
+ * @param list Existing list
+ * @returns List with parameters added
  */
-export function addArgumentsToList(node: FunctionDeclaration | ArrowFunctionExpression, list: string[]): string[] {
-  return addToList(
-    node.params.reduce<string[]>((acc, param) => (isIdentifier(param) ? [...acc, param.name] : acc), []),
+export const addArgumentsToList = (node: FunctionDeclaration | ArrowFunctionExpression, list: string[]): string[] =>
+  addToList(
+    node.params.reduce<string[]>((acc, param) => {
+      if (isIdentifier(param)) {
+        acc.push(param.name);
+      }
+      return acc;
+    }, []),
     list,
   );
-}
 
 /**
  * Add reactive variables to a list
- * @param {VariableDeclarator} node Variable declarator node
- * @param {string[]} list Existing list
- * @returns {string[]} List with variables added
+ * @param node Variable declarator node
+ * @param list Existing list
+ * @returns List with variables added
  */
-export function addReactiveVariables(node: VariableDeclarator, list: string[]): string[] {
-  return isFunctionCall(node, REACTIVE_FUNCTIONS) && isIdentifier(node.id) ? addToList([node.id.name], list) : list;
-}
+export const addReactiveVariables = (node: VariableDeclarator, list: string[]): string[] =>
+  isFunctionCall(node, REACTIVE_FUNCTIONS) && isIdentifier(node.id) ? addToList([node.id.name], list) : list;
 
 /**
  * If the variable's initializer is obtained from a reactive function, add the variable names to the list
- * @param {VariableDeclarator} node Variable declarator node
- * @param {string[]} list Existing list
- * @returns {string[]} List with variable names added
+ * @param node Variable declarator node
+ * @param list Existing list
+ * @returns List with variable names added
  */
-export function addToVariablesListFromCalleeWithArgument(node: VariableDeclarator, list: string[]): string[] {
+export const addToVariablesListFromCalleeWithArgument = (node: VariableDeclarator, list: string[]): string[] => {
   if (!isFunctionCall(node, REACTIVE_FUNCTIONS) || !isObjectPattern(node.id)) {
     return list;
   }
@@ -152,15 +155,15 @@ export function addToVariablesListFromCalleeWithArgument(node: VariableDeclarato
   }, []);
 
   return addToList(variableNames, list);
-}
+};
 
 /**
  * Add functions destructured from functions starting with 'use' (e.g., composables) to a list
- * @param {VariableDeclarator} node Variable declarator node
- * @param {string[]} list Existing list
- * @returns {string[]} List with function names added
+ * @param node Variable declarator node
+ * @param list Existing list
+ * @returns List with function names added
  */
-export function addDestructuredFunctionNames(node: VariableDeclarator, list: string[]): string[] {
+export const addDestructuredFunctionNames = (node: VariableDeclarator, list: string[]): string[] => {
   if (
     !isObjectPattern(node.id) ||
     !isCallExpression(node.init) ||
@@ -178,44 +181,45 @@ export function addDestructuredFunctionNames(node: VariableDeclarator, list: str
   }, []);
 
   return addToList(functionNames, list);
-}
+};
 
 /**
  * Check whether the node is an argument of the specified function
- * @param {Identifier} node Node
- * @param {string[]} ignoredFunctionNames List of function names to ignore
- * @returns {boolean} Whether it is an argument of the specified function
+ * @param node Node
+ * @param ignoredFunctionNames List of function names to ignore
+ * @returns Whether it is an argument of the specified function
  */
-export function isArgumentOfFunction(node: Identifier, ignoredFunctionNames: string[]): boolean {
+export const isArgumentOfFunction = (node: Identifier, ignoredFunctionNames: string[]): boolean => {
   const callExpression = getAncestorCallExpression(node);
   if (!isIdentifier(callExpression?.callee)) {
     return false;
   }
 
   const isMatchingName = isMatchingFunctionName(callExpression.callee.name, ignoredFunctionNames);
-  const isArgument = callExpression.arguments.some(
+  if (!isMatchingName) {
+    return false;
+  }
+
+  return callExpression.arguments.some(
     (argument) => isIdentifier(argument) && argument.type === node.type && argument.name === node.name,
   );
-
-  return isMatchingName && isArgument;
-}
+};
 
 /**
  * Check whether the function name matches the specified pattern
- * @param {string} name Function name
- * @param {string[]} ignoredFunctionNames List of function names to ignore
- * @returns {boolean} Whether the function name matches
+ * @param name Function name
+ * @param ignoredFunctionNames List of function names to ignore
+ * @returns Whether the function name matches
  */
-export function isMatchingFunctionName(name: string, ignoredFunctionNames: string[]): boolean {
-  return COMPOSABLES_FUNCTION_PATTERN.test(name) || ignoredFunctionNames.includes(name);
-}
+export const isMatchingFunctionName = (name: string, ignoredFunctionNames: string[]): boolean =>
+  COMPOSABLES_FUNCTION_PATTERN.test(name) || ignoredFunctionNames.includes(name);
 
 /**
  * Check whether the node is an argument of the 'watch' function
- * @param {Identifier} node Node
- * @returns {boolean} Whether it is an argument of the 'watch' function
+ * @param node Node
+ * @returns Whether it is an argument of the 'watch' function
  */
-export function isWatchArgument(node: Identifier): boolean {
+export const isWatchArgument = (node: Identifier): boolean => {
   const callExpression = getAncestorCallExpression(node);
 
   if (!isIdentifier(callExpression?.callee) || callExpression.callee.name !== 'watch') {
@@ -227,95 +231,99 @@ export function isWatchArgument(node: Identifier): boolean {
     isArrayExpression(callExpression.arguments?.[0]) && callExpression.arguments?.[0]?.elements?.includes(node);
 
   return isFirstArgument || isInArrayExpression;
-}
+};
 
 /**
  * Check whether the node is a call to the specified function
- * @param {VariableDeclarator} node Variable declarator node
- * @param {string[]} functionNames List of function names to check
- * @returns {boolean} Whether it is a function call
+ * @param node Variable declarator node
+ * @param functionNames List of function names to check
+ * @returns Whether it is a function call
  */
-export function isFunctionCall(node: VariableDeclarator, functionNames: string[]): boolean {
+export const isFunctionCall = (node: VariableDeclarator, functionNames: typeof REACTIVE_FUNCTIONS): boolean => {
   return (
-    isCallExpression(node.init) && isIdentifier(node.init.callee) && functionNames.includes(node.init.callee?.name)
+    isCallExpression(node.init) &&
+    isIdentifier(node.init.callee) &&
+    functionNames.includes(node.init.callee?.name as (typeof REACTIVE_FUNCTIONS)[number])
   );
-}
+};
 
 /**
  * Traverse up the parent nodes to find the first CallExpression node
- * @param {Node} node Node
- * @returns {CallExpression | null} The first CallExpression node found, or null if none
+ * @param node Node
+ * @returns The first CallExpression node found, or null if none
  */
-export function getAncestorCallExpression(node: Node): CallExpression | null {
+export const getAncestorCallExpression = (node: Node): CallExpression | null => {
   let currentNode = node.parent;
   while (currentNode && !isCallExpression(currentNode)) {
     currentNode = currentNode.parent;
   }
   return isCallExpression(currentNode) ? currentNode : null;
-}
+};
 
 /**
  * Check whether the node is a property value
- * @param {Node} node The node to check
- * @returns {boolean} Whether it is a property value
+ * @param node The node to check
+ * @returns Whether it is a property value
  */
-export function isPropertyValue(node: Node): boolean {
-  return isMemberExpression(node) && isIdentifier(node.property) && node.property.name === 'value';
-}
+export const isPropertyValue = (node: Node): boolean =>
+  isMemberExpression(node) && isIdentifier(node.property) && node.property.name === 'value';
 
 /**
  * Check whether the node is a function argument
- * @param {Identifier} node Node
- * @param {string[]} functionArguments List of function arguments
- * @returns {boolean} Whether it is an argument
+ * @param node Node
+ * @param functionArguments List of function arguments
+ * @returns Whether it is an argument
  */
-export function isFunctionArgument(node: Identifier, functionArguments: string[]): boolean {
-  return functionArguments.includes(node.name);
-}
+export const isFunctionArgument = (node: Identifier, functionArguments: string[]): boolean =>
+  functionArguments.includes(node.name);
 
 /**
  * Check whether the node is a key of an object
- * @param {Node} node The node to check
- * @param {Identifier} identifierNode The identifier node to check
- * @returns {boolean} Whether it is a key of an object
+ * @param node The node to check
+ * @param identifierNode The identifier node to check
+ * @returns Whether it is a key of an object
  */
-export function isObjectKey(node: Node, identifierNode: Identifier): boolean {
-  return isProperty(node) && isIdentifier(node.key) && node.key.name === identifierNode.name;
-}
+export const isObjectKey = (node: Node, identifierNode: Identifier): boolean =>
+  isProperty(node) && isIdentifier(node.key) && node.key.name === identifierNode.name;
 
 /**
  * Check whether the node is the original declaration
- * @param {Node} node The node to check
- * @returns {boolean} Whether it is the original declaration
+ * @param node The node to check
+ * @returns Whether it is the original declaration
  */
-export function isOriginalDeclaration(node: Node): boolean {
-  return isMemberExpression(node) || isProperty(node);
-}
+export const isOriginalDeclaration = (node: Node): boolean => isMemberExpression(node) || isProperty(node);
 
 /**
  * Check whether the node is an argument of a destructured function
- * @param {Node} parent Parent node
- * @param {Node | undefined} grandParent Grandparent node
- * @param {string[]} destructuredFunctions List of destructured functions
- * @returns {boolean} Whether it is an argument of a destructured function
+ * @param parent Parent node
+ * @param grandParent Grandparent node
+ * @param destructuredFunctions List of destructured functions
+ * @returns Whether it is an argument of a destructured function
  */
-export function isDestructuredFunctionArgument(
+export const isDestructuredFunctionArgument = (
   parent: Node,
   grandParent: Node | undefined,
   destructuredFunctions: string[],
-): boolean {
-  return (
-    isNodeDestructuredFunction(parent, destructuredFunctions) ||
-    Boolean(grandParent && isNodeDestructuredFunction(grandParent, destructuredFunctions))
-  );
-}
+): boolean => {
+  if (isNodeDestructuredFunction(parent, destructuredFunctions)) {
+    return true;
+  }
 
+  if (!grandParent) {
+    return false;
+  }
+
+  return isNodeDestructuredFunction(grandParent, destructuredFunctions);
+};
 /**
  * Check whether the node is a destructured function call
- * @param {Node} node Node to check
- * @param {string[]} destructuredFunctions List of destructured functions
- * @returns {boolean} Whether the node is a destructured function call
+ * @param node Node to check
+ * @param destructuredFunctions List of destructured functions
+ * @returns Whether the node is a destructured function call
  */
-export function isNodeDestructuredFunction(node: Node, destructuredFunctions: string[]): boolean {
-  return isCallExpression(node) && isIdentifier(node.callee) && destructuredFunctions.includes(node.callee.name);
-}
+export const isNodeDestructuredFunction = (node: Node, destructuredFunctions: string[]): boolean => {
+  if (!isCallExpression(node)) {
+    return false;
+  }
+  return isIdentifier(node.callee) && destructuredFunctions.includes(node.callee.name);
+};
