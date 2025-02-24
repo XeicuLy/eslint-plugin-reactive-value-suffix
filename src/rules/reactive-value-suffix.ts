@@ -29,12 +29,13 @@ type RuleContext = TSESLint.RuleContext<MessageId, Options[]>;
 type RuleModule = TSESLint.RuleModule<MessageId, Options[]>;
 
 /**
- * Checks the type of the specified node and reports necessary fixes
- * @param node - The node to check
- * @param name - The name of the node
- * @param context - The rule context
- * @param parserServices - The parser services
- * @param checker - The TypeScript type checker
+ * Validates that a node representing a reactive reference is accessed with a proper `.value` suffix.
+ *
+ * Retrieves the TypeScript type for the provided AST node and checks whether it is a reactive reference (indicated by the presence of "Ref" in the type string)
+ * that is missing the required `.value` suffix. If the node is not part of a non-null assertion and meets these conditions, an error is reported using the provided identifier.
+ *
+ * @param node - The AST node to inspect.
+ * @param name - The identifier used in the error report.
  */
 function checkNodeAndReport(
   node: Node,
@@ -61,15 +62,18 @@ function checkNodeAndReport(
 }
 
 /**
- * Checks the identifier node and applies the rule
- * @param node - The identifier node to check
- * @param reactiveVariables - List of reactive variables
- * @param functionArguments - List of function arguments
- * @param destructuredFunctions - List of destructured functions
- * @param context - The rule context
- * @param parserServices - The parser services
- * @param checker - The TypeScript type checker
- * @param ignoredFunctionNames - List of function names to ignore
+ * Validates that an identifier representing a reactive variable is accessed properly.
+ *
+ * This function checks if the provided identifier corresponds to a reactive variable and whether it is used in a context
+ * that requires accessing its underlying value (typically via a `.value` property). It excludes cases where the identifier
+ * is part of a declaration, member expression, object key, function argument, or other valid contexts. If none of these
+ * situations apply, the function reports a violation.
+ *
+ * @param node - The identifier node being validated.
+ * @param reactiveVariables - List of reactive variable names.
+ * @param functionArguments - Names of function arguments exempt from value suffix enforcement.
+ * @param destructuredFunctions - Names of functions whose destructured arguments are handled differently.
+ * @param ignoredFunctionNames - Function names for which reactive variable rules are not enforced.
  */
 function checkIdentifier(
   node: Identifier,
@@ -105,12 +109,15 @@ function checkIdentifier(
 }
 
 /**
- * Checks the member expression node and applies the rule
- * @param node - The member expression node to check
- * @param variableFromReactiveFunctions - List of variables from reactive functions
- * @param context - The rule context
- * @param parserServices - The parser services
- * @param checker - The TypeScript type checker
+ * Ensures that member expressions accessing reactive variables include a ".value" suffix.
+ *
+ * The function verifies that the member expression's object is an identifier found in the provided list
+ * of reactive variable names. If so, it delegates to a dedicated check to enforce the correct access style.
+ * Member expressions that represent property values, do not use an identifier as their object, or reference
+ * non-reactive variables are ignored.
+ *
+ * @param node - The member expression AST node to validate.
+ * @param variableFromReactiveFunctions - Array of reactive variable names from reactive function calls.
  */
 function checkMemberExpression(
   node: MemberExpression,
