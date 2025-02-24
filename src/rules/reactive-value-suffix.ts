@@ -129,6 +129,7 @@ function checkMemberExpression(
 
   checkNodeAndReport(node.object, node.object.name, context, parserServices, checker);
 }
+
 export const reactiveValueSuffix: RuleModule = {
   meta: {
     type: 'problem',
