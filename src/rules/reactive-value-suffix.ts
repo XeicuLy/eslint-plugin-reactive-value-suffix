@@ -81,8 +81,12 @@ function checkIdentifier(
   checker: TypeChecker,
   ignoredFunctionNames: string[],
 ): void {
+  if (!node.parent) return;
+
   const parent = node.parent;
-  const grandParent = parent?.parent;
+  const grandParent = parent.parent;
+
+  if (!reactiveVariables.includes(node.name)) return;
 
   if (
     !isVariableDeclarator(parent) &&
@@ -93,8 +97,7 @@ function checkIdentifier(
     !isOriginalDeclaration(parent) &&
     !isWatchArgument(node) &&
     !isArgumentOfFunction(node, ignoredFunctionNames) &&
-    !isDestructuredFunctionArgument(parent, grandParent, destructuredFunctions) &&
-    reactiveVariables.includes(node.name)
+    !isDestructuredFunctionArgument(parent, grandParent, destructuredFunctions)
   ) {
     checkNodeAndReport(node, node.name, context, parserServices, checker);
   }
