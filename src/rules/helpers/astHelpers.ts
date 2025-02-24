@@ -118,7 +118,12 @@ export const isParentNonNullAssertion = (node: Node): node is TSNonNullExpressio
  */
 export const addArgumentsToList = (node: FunctionDeclaration | ArrowFunctionExpression, list: string[]): string[] =>
   addToList(
-    node.params.reduce<string[]>((acc, param) => (isIdentifier(param) ? [...acc, param.name] : acc), []),
+    node.params.reduce<string[]>((acc, param) => {
+      if (isIdentifier(param)) {
+        acc.push(param.name);
+      }
+      return acc;
+    }, []),
     list,
   );
 
