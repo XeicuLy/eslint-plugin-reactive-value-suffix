@@ -20,10 +20,11 @@ import {
   isParentNonNullAssertion,
 } from './helpers/astHelpers';
 
-type MessageId = 'requireValueSuffix';
-export interface Options {
+interface Options {
   functionNamesToIgnoreValueCheck?: string[];
 }
+
+type MessageId = 'requireValueSuffix';
 type RuleContext = TSESLint.RuleContext<MessageId, Options[]>;
 type RuleModule = TSESLint.RuleModule<MessageId, Options[]>;
 
