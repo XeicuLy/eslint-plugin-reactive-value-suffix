@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v2.0.0...v2.0.1) (2025-02-24)
+
+
+### Performance Improvements
+
+* fix O(n²) complexity in array spread operation ([adfc4f4](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/commit/adfc4f46869e888c06cc8b472bc0904d54476532))
+
 # [2.0.0](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v1.1.0...v2.0.0) (2024-10-10)
 
 
