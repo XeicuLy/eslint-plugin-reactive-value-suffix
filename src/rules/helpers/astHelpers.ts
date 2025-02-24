@@ -235,9 +235,11 @@ export function isWatchArgument(node: Identifier): boolean {
  * @param functionNames List of function names to check
  * @returns Whether it is a function call
  */
-export function isFunctionCall(node: VariableDeclarator, functionNames: string[]): boolean {
+export function isFunctionCall(node: VariableDeclarator, functionNames: typeof REACTIVE_FUNCTIONS): boolean {
   return (
-    isCallExpression(node.init) && isIdentifier(node.init.callee) && functionNames.includes(node.init.callee?.name)
+    isCallExpression(node.init) &&
+    isIdentifier(node.init.callee) &&
+    functionNames.includes(node.init.callee?.name as (typeof REACTIVE_FUNCTIONS)[number])
   );
 }
 
