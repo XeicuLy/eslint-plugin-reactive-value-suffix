@@ -319,5 +319,8 @@ export function isDestructuredFunctionArgument(
  * @returns Whether the node is a destructured function call
  */
 export function isNodeDestructuredFunction(node: Node, destructuredFunctions: string[]): boolean {
-  return isCallExpression(node) && isIdentifier(node.callee) && destructuredFunctions.includes(node.callee.name);
+  if (!isCallExpression(node)) {
+    return false;
+  }
+  return isIdentifier(node.callee) && destructuredFunctions.includes(node.callee.name);
 }
