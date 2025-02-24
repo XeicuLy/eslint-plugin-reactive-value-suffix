@@ -10,8 +10,8 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: 20.17.0
-  PNPM_VERSION: 9
+  NODE_VERSION: 22.14.0
+  PNPM_VERSION: 9.15.6
 
 jobs:
   type-check:
