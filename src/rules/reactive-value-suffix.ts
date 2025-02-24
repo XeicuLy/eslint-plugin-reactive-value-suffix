@@ -82,25 +82,26 @@ function checkIdentifier(
   ignoredFunctionNames: string[],
 ): void {
   if (!node.parent) return;
+  if (!reactiveVariables.includes(node.name)) return;
 
   const parent = node.parent;
   const grandParent = parent.parent;
 
-  if (!reactiveVariables.includes(node.name)) return;
-
   if (
-    !isVariableDeclarator(parent) &&
-    !isMemberExpression(parent) &&
-    !isObjectKey(parent, node) &&
-    !isFunctionArgument(node, functionArguments) &&
-    !isPropertyValue(parent) &&
-    !isOriginalDeclaration(parent) &&
-    !isWatchArgument(node) &&
-    !isArgumentOfFunction(node, ignoredFunctionNames) &&
-    !isDestructuredFunctionArgument(parent, grandParent, destructuredFunctions)
+    isVariableDeclarator(parent) ||
+    isMemberExpression(parent) ||
+    isObjectKey(parent, node) ||
+    isFunctionArgument(node, functionArguments) ||
+    isPropertyValue(parent) ||
+    isOriginalDeclaration(parent) ||
+    isWatchArgument(node) ||
+    isArgumentOfFunction(node, ignoredFunctionNames) ||
+    isDestructuredFunctionArgument(parent, grandParent, destructuredFunctions)
   ) {
-    checkNodeAndReport(node, node.name, context, parserServices, checker);
+    return;
   }
+
+  checkNodeAndReport(node, node.name, context, parserServices, checker);
 }
 
 /**
@@ -118,11 +119,16 @@ function checkMemberExpression(
   parserServices: ParserServices,
   checker: TypeChecker,
 ): void {
-  if (!isPropertyValue(node) && isIdentifier(node.object) && variableFromReactiveFunctions.includes(node.object.name)) {
-    checkNodeAndReport(node.object, node.object.name, context, parserServices, checker);
+  if (
+    isPropertyValue(node) ||
+    !isIdentifier(node.object) ||
+    !variableFromReactiveFunctions.includes(node.object.name)
+  ) {
+    return;
   }
-}
 
+  checkNodeAndReport(node.object, node.object.name, context, parserServices, checker);
+}
 export const reactiveValueSuffix: RuleModule = {
   meta: {
     type: 'problem',
