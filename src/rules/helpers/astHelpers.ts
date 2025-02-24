@@ -193,11 +193,13 @@ export function isArgumentOfFunction(node: Identifier, ignoredFunctionNames: str
   }
 
   const isMatchingName = isMatchingFunctionName(callExpression.callee.name, ignoredFunctionNames);
-  const isArgument = callExpression.arguments.some(
+  if (!isMatchingName) {
+    return false;
+  }
+
+  return callExpression.arguments.some(
     (argument) => isIdentifier(argument) && argument.type === node.type && argument.name === node.name,
   );
-
-  return isMatchingName && isArgument;
 }
 
 /**
@@ -306,12 +308,16 @@ export function isDestructuredFunctionArgument(
   grandParent: Node | undefined,
   destructuredFunctions: string[],
 ): boolean {
-  return (
-    isNodeDestructuredFunction(parent, destructuredFunctions) ||
-    Boolean(grandParent && isNodeDestructuredFunction(grandParent, destructuredFunctions))
-  );
-}
+  if (isNodeDestructuredFunction(parent, destructuredFunctions)) {
+    return true;
+  }
 
+  if (!grandParent) {
+    return false;
+  }
+
+  return isNodeDestructuredFunction(grandParent, destructuredFunctions);
+}
 /**
  * Check whether the node is a destructured function call
  * @param node Node to check
