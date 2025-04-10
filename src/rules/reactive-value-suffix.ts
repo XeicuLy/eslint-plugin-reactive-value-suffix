@@ -1,140 +1,199 @@
-import { ESLintUtils } from '@typescript-eslint/utils';
-import type { TypeChecker } from 'typescript';
-import type { TSESLint, ParserServices } from '@typescript-eslint/utils';
-import type { Node, Identifier, MemberExpression, RuleListener } from './types/eslint';
+import { ESLintUtils, type TSESLint, type ParserServices, type TSESTree } from '@typescript-eslint/utils';
+import { COMPOSABLES_FUNCTION_PATTERN, REACTIVE_FUNCTIONS } from './constants/constant';
 import {
-  addReactiveVariables,
-  addToVariablesListFromCalleeWithArgument,
-  addArgumentsToList,
-  addDestructuredFunctionNames,
-  isArgumentOfFunction,
-  isWatchArgument,
-  isVariableDeclarator,
-  isMemberExpression,
-  isPropertyValue,
-  isFunctionArgument,
-  isObjectKey,
-  isOriginalDeclaration,
-  isDestructuredFunctionArgument,
+  isCallExpression,
   isIdentifier,
-  isParentNonNullAssertion,
-} from './helpers/astHelpers';
+  isObjectPattern,
+  isProperty,
+  isTSNonNullExpression,
+  isVariableDeclaration,
+} from './helpers/ast-helpers';
+import { isPropertyValue, shouldSuppressWarning } from './helpers/function-checks';
+import { createReportData, getTypeString, memoize } from './helpers/types';
+import type { TypeChecker } from 'typescript';
 
-interface Options {
-  functionNamesToIgnoreValueCheck?: string[];
-}
+const RULE_MESSAGE_ID = 'reactiveValueSuffix' as const;
 
-type MessageId = 'requireValueSuffix';
-type RuleContext = TSESLint.RuleContext<MessageId, Options[]>;
-type RuleModule = TSESLint.RuleModule<MessageId, Options[]>;
+type ReactiveValueRuleOptions = { functionNamesToIgnoreValueCheck?: string[] };
+type ReactiveValueRuleContext = Readonly<TSESLint.RuleContext<typeof RULE_MESSAGE_ID, ReactiveValueRuleOptions[]>>;
+type PropertyWithIdentifierObject = TSESTree.Property & { key: TSESTree.Identifier; value: TSESTree.Identifier };
 
-/**
- * Checks the type of the specified node and reports necessary fixes
- * @param node - The node to check
- * @param name - The name of the node
- * @param context - The rule context
- * @param parserServices - The parser services
- * @param checker - The TypeScript type checker
- */
-function checkNodeAndReport(
-  node: Node,
-  name: string,
-  context: RuleContext,
+const getTypeCheckingServices = (ruleContext: ReactiveValueRuleContext) => {
+  const parserServices = ESLintUtils.getParserServices(ruleContext);
+  const typeChecker = parserServices.program.getTypeChecker();
+  return { parserServices, typeChecker };
+};
+
+const needsValueSuffix = (
+  variableNode: TSESTree.Identifier,
+  typeChecker: TypeChecker,
   parserServices: ParserServices,
-  checker: TypeChecker,
-) {
-  const tsNode = parserServices.esTreeNodeToTSNodeMap.get(node);
-  const type = checker.getTypeAtLocation(tsNode);
-  const typeName = checker.typeToString(type);
+): boolean => {
+  const variableTypeString = getTypeString(variableNode, typeChecker, parserServices);
 
-  const isRefType = typeName.includes('Ref');
-  const hasMissingValueSuffix = !typeName.includes('.value');
-  const isNotNonNullAssertion = !isParentNonNullAssertion(node);
+  const isRefTypeVariable = variableTypeString.includes('Ref');
+  const isValueSuffixMissing = !variableTypeString.includes('.value');
+  const hasNonNullAssertion = isTSNonNullExpression(variableNode.parent);
 
-  if (isRefType && hasMissingValueSuffix && isNotNonNullAssertion) {
-    context.report({
-      node,
-      messageId: 'requireValueSuffix',
-      data: { name },
-    });
-  }
-}
+  return isRefTypeVariable && isValueSuffixMissing && !hasNonNullAssertion;
+};
 
-/**
- * Checks the identifier node and applies the rule
- * @param node - The identifier node to check
- * @param reactiveVariables - List of reactive variables
- * @param functionArguments - List of function arguments
- * @param destructuredFunctions - List of destructured functions
- * @param context - The rule context
- * @param parserServices - The parser services
- * @param checker - The TypeScript type checker
- * @param ignoredFunctionNames - List of function names to ignore
- */
-function checkIdentifier(
-  node: Identifier,
-  reactiveVariables: string[],
-  functionArguments: string[],
-  destructuredFunctions: string[],
-  context: RuleContext,
-  parserServices: ParserServices,
-  checker: TypeChecker,
-  ignoredFunctionNames: string[],
-): void {
-  if (!node.parent) return;
-  if (!reactiveVariables.includes(node.name)) return;
+const getAllVariableDeclarators = (ruleContext: ReactiveValueRuleContext): TSESTree.VariableDeclarator[] => {
+  return ruleContext.sourceCode.ast.body.flatMap((sourceNode) => {
+    if (isVariableDeclaration(sourceNode)) {
+      return sourceNode.declarations;
+    }
+    return [];
+  });
+};
 
-  const parent = node.parent;
-  const grandParent = parent.parent;
+const getStoreToRefsVariableNames = (ruleContext: ReactiveValueRuleContext): string[] => {
+  const isStoreToRefsDeclaration = (declaration: TSESTree.VariableDeclarator): boolean =>
+    isObjectPattern(declaration.id) &&
+    !!declaration.init &&
+    isCallExpression(declaration.init) &&
+    isIdentifier(declaration.init.callee) &&
+    declaration.init.callee.name === 'storeToRefs';
+
+  const extractIdentifierNames = (declaration: TSESTree.VariableDeclarator): string[] => {
+    if (!isObjectPattern(declaration.id)) return [];
+
+    return declaration.id.properties
+      .filter(
+        (property): property is PropertyWithIdentifierObject =>
+          isProperty(property) && isIdentifier(property.key) && isIdentifier(property.value),
+      )
+      .map((property) => property.value.name);
+  };
+
+  return getAllVariableDeclarators(ruleContext).filter(isStoreToRefsDeclaration).flatMap(extractIdentifierNames);
+};
+
+const getAllReactiveVariableNames = (ruleContext: ReactiveValueRuleContext): string[] => {
+  const isReactiveFunctionCall = (declaration: TSESTree.VariableDeclarator): boolean =>
+    !!declaration.init &&
+    isCallExpression(declaration.init) &&
+    isIdentifier(declaration.init.callee) &&
+    REACTIVE_FUNCTIONS.includes(declaration.init.callee.name as (typeof REACTIVE_FUNCTIONS)[number]);
+
+  const extractVariableNames = (declaration: TSESTree.VariableDeclarator): string[] => {
+    if (isIdentifier(declaration.id)) {
+      return [declaration.id.name];
+    } else if (isObjectPattern(declaration.id)) {
+      return declaration.id.properties
+        .filter(
+          (property): property is TSESTree.Property & { value: TSESTree.Identifier } =>
+            isProperty(property) && isIdentifier(property.value),
+        )
+        .map((property) => property.value.name);
+    }
+    return [];
+  };
+
+  const reactiveVariableNames = getAllVariableDeclarators(ruleContext)
+    .filter(
+      (
+        declaration,
+      ): declaration is TSESTree.VariableDeclarator & {
+        init: TSESTree.CallExpression & { callee: TSESTree.Identifier };
+      } => isReactiveFunctionCall(declaration),
+    )
+    .flatMap(extractVariableNames);
+
+  const storeToRefsVariableNames = getStoreToRefsVariableNames(ruleContext);
+
+  return [...reactiveVariableNames, ...storeToRefsVariableNames];
+};
+
+const getComposableFunctionVariableNames = (ruleContext: ReactiveValueRuleContext): string[] => {
+  const isComposableFunctionCall = (declaration: TSESTree.VariableDeclarator): boolean =>
+    !!declaration.init &&
+    isCallExpression(declaration.init) &&
+    isIdentifier(declaration.init.callee) &&
+    COMPOSABLES_FUNCTION_PATTERN.test(declaration.init.callee.name);
+
+  const extractPropertyVariableNames = (declaration: TSESTree.VariableDeclarator): string[] => {
+    if (!isObjectPattern(declaration.id)) return [];
+
+    return declaration.id.properties
+      .filter(
+        (property): property is PropertyWithIdentifierObject =>
+          isProperty(property) && isIdentifier(property.key) && isIdentifier(property.value),
+      )
+      .map((property) => property.value.name);
+  };
+
+  return getAllVariableDeclarators(ruleContext)
+    .filter(
+      (
+        declaration,
+      ): declaration is TSESTree.VariableDeclarator & {
+        id: TSESTree.ObjectPattern;
+        init: TSESTree.CallExpression & { callee: TSESTree.Identifier };
+      } => isComposableFunctionCall(declaration),
+    )
+    .flatMap(extractPropertyVariableNames);
+};
+
+const processIdentifierNode = (
+  identifierNode: TSESTree.Identifier,
+  ruleContext: ReactiveValueRuleContext,
+  reactiveVariableNames: Readonly<string[]>,
+  composableFunctionVariableNames: Readonly<string[]>,
+  ignoredFunctionNames: Readonly<string[]>,
+): void => {
+  if (!identifierNode.parent || !reactiveVariableNames.includes(identifierNode.name)) return;
+
+  const { parserServices, typeChecker } = getTypeCheckingServices(ruleContext);
 
   if (
-    isVariableDeclarator(parent) ||
-    isMemberExpression(parent) ||
-    isObjectKey(parent, node) ||
-    isFunctionArgument(node, functionArguments) ||
-    isPropertyValue(parent) ||
-    isOriginalDeclaration(parent) ||
-    isWatchArgument(node) ||
-    isArgumentOfFunction(node, ignoredFunctionNames) ||
-    isDestructuredFunctionArgument(parent, grandParent, destructuredFunctions)
+    shouldSuppressWarning(identifierNode, identifierNode.parent, composableFunctionVariableNames, ignoredFunctionNames)
   ) {
     return;
   }
 
-  checkNodeAndReport(node, node.name, context, parserServices, checker);
-}
+  if (needsValueSuffix(identifierNode, typeChecker, parserServices)) {
+    ruleContext.report(createReportData(identifierNode, RULE_MESSAGE_ID));
+  }
+};
 
-/**
- * Checks the member expression node and applies the rule
- * @param node - The member expression node to check
- * @param variableFromReactiveFunctions - List of variables from reactive functions
- * @param context - The rule context
- * @param parserServices - The parser services
- * @param checker - The TypeScript type checker
- */
-function checkMemberExpression(
-  node: MemberExpression,
-  variableFromReactiveFunctions: string[],
-  context: RuleContext,
-  parserServices: ParserServices,
-  checker: TypeChecker,
-): void {
-  if (
-    isPropertyValue(node) ||
-    !isIdentifier(node.object) ||
-    !variableFromReactiveFunctions.includes(node.object.name)
-  ) {
+const processMemberExpressionNode = (
+  memberExpressionNode: TSESTree.MemberExpression,
+  ruleContext: ReactiveValueRuleContext,
+  reactiveVariableNames: Readonly<string[]>,
+): void => {
+  if (!isIdentifier(memberExpressionNode.object) || !reactiveVariableNames.includes(memberExpressionNode.object.name)) {
     return;
   }
 
-  checkNodeAndReport(node.object, node.object.name, context, parserServices, checker);
-}
+  if (isIdentifier(memberExpressionNode.property) && memberExpressionNode.property.name === 'value') {
+    return;
+  }
 
-export const reactiveValueSuffix: RuleModule = {
+  if (isPropertyValue(memberExpressionNode.parent)) {
+    return;
+  }
+
+  const { parserServices, typeChecker } = getTypeCheckingServices(ruleContext);
+
+  if (needsValueSuffix(memberExpressionNode.object, typeChecker, parserServices)) {
+    ruleContext.report(createReportData(memberExpressionNode.object, RULE_MESSAGE_ID));
+  }
+};
+
+const createESLintRule = ESLintUtils.RuleCreator(
+  () => 'https://www.npmjs.com/package/eslint-plugin-reactive-value-suffix',
+);
+
+export const reactiveValueSuffix = createESLintRule<ReactiveValueRuleOptions[], typeof RULE_MESSAGE_ID>({
+  name: 'reactive-value-suffix',
   meta: {
-    type: 'problem',
+    type: 'suggestion',
     docs: {
-      description: 'A rule that enforces accessing reactive values with `.value`',
+      description: 'Vue.jsのリアクティブな値へのアクセス時に.valueサフィックスの使用を強制するルール',
+    },
+    messages: {
+      [RULE_MESSAGE_ID]: 'リアクティブな変数 "{{name}}" には "{{name}}.value" としてアクセスしてください',
     },
     schema: [
       {
@@ -142,61 +201,37 @@ export const reactiveValueSuffix: RuleModule = {
         properties: {
           functionNamesToIgnoreValueCheck: {
             type: 'array',
-            items: {
-              type: 'string',
-            },
+            items: { type: 'string' },
             default: [],
           },
         },
         additionalProperties: false,
       },
     ],
-    messages: {
-      requireValueSuffix: 'Please access the reactive value "{{name}}" with {{name}}.value',
-    },
   },
   defaultOptions: [{}],
-  /**
-   * Creates the implementation of the rule
-   * @param context - The rule context
-   * @returns The rule listener
-   */
-  create(context: RuleContext): RuleListener {
-    const options: Options = context.options[0] || {};
-    const functionNamesToIgnoreValueCheck: string[] = options.functionNamesToIgnoreValueCheck || [];
-    let variableFromReactiveFunctions: string[] = [];
-    let functionArguments: string[] = [];
-    let destructuredFunctions: string[] = [];
-    const parserServices = ESLintUtils.getParserServices(context);
-    const checker = parserServices.program.getTypeChecker();
+  create(ruleContext: ReactiveValueRuleContext) {
+    const ruleOptions = ruleContext.options[0] || {};
+    const functionNamesToIgnoreValueCheck = ruleOptions.functionNamesToIgnoreValueCheck || [];
+
+    const getReactiveVariables = memoize(() => getAllReactiveVariableNames(ruleContext));
+    const getComposableFunctions = memoize(() => getComposableFunctionVariableNames(ruleContext));
+    const reactiveVariableList = getReactiveVariables();
+    const composableFunctionList = getComposableFunctions();
 
     return {
-      VariableDeclarator(node) {
-        variableFromReactiveFunctions = addReactiveVariables(node, variableFromReactiveFunctions);
-        variableFromReactiveFunctions = addToVariablesListFromCalleeWithArgument(node, variableFromReactiveFunctions);
-        destructuredFunctions = addDestructuredFunctionNames(node, destructuredFunctions);
-      },
-      FunctionDeclaration(node) {
-        functionArguments = addArgumentsToList(node, functionArguments);
-      },
-      ArrowFunctionExpression(node) {
-        functionArguments = addArgumentsToList(node, functionArguments);
-      },
-      Identifier(node) {
-        checkIdentifier(
-          node,
-          variableFromReactiveFunctions,
-          functionArguments,
-          destructuredFunctions,
-          context,
-          parserServices,
-          checker,
+      Identifier(identifierNode) {
+        processIdentifierNode(
+          identifierNode,
+          ruleContext,
+          reactiveVariableList,
+          composableFunctionList,
           functionNamesToIgnoreValueCheck,
         );
       },
-      MemberExpression(node) {
-        checkMemberExpression(node, variableFromReactiveFunctions, context, parserServices, checker);
+      MemberExpression(memberExpressionNode) {
+        processMemberExpressionNode(memberExpressionNode, ruleContext, reactiveVariableList);
       },
     };
   },
-};
+});
