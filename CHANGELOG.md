@@ -1,3 +1,16 @@
+# [3.0.0](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v2.0.1...v3.0.0) (2025-04-10)
+
+
+### Features
+
+* architecture change ([1217a64](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/commit/1217a645589b9028d3e49b00277915aa95b2c5c6))
+
+
+### BREAKING CHANGES
+
+* Changed from a design that holds an array to a design that searches for a Node each
+time
+
 ## [2.0.1](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v2.0.0...v2.0.1) (2025-02-24)
 
 
