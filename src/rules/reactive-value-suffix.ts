@@ -190,10 +190,10 @@ export const reactiveValueSuffix = createESLintRule<ReactiveValueRuleOptions[], 
   meta: {
     type: 'suggestion',
     docs: {
-      description: 'Vue.jsのリアクティブな値へのアクセス時に.valueサフィックスの使用を強制するルール',
+      description: 'Enforce using .value suffix when accessing reactive values in Vue.js',
     },
     messages: {
-      [RULE_MESSAGE_ID]: 'リアクティブな変数 "{{name}}" には "{{name}}.value" としてアクセスしてください',
+      [RULE_MESSAGE_ID]: 'Reactive variable "{{name}}" should be accessed as "{{name}}.value"',
     },
     schema: [
       {
