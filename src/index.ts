@@ -1,4 +1,9 @@
+import { ESLint } from 'eslint';
 import { reactiveValueSuffix } from './rules/reactive-value-suffix';
+
+export const meta = {
+  name: 'reactive-value-suffix',
+};
 
 export const rules = {
   suffix: reactiveValueSuffix,
@@ -19,10 +24,10 @@ export const configs = {
 };
 
 export default {
-  name: 'reactive-value-suffix',
+  meta,
   rules,
   configs,
-};
+} as unknown as ESLint.Plugin;
 
 /**
  * Usage examples:
