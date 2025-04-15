@@ -1,33 +1,33 @@
 import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/utils';
 
-export const isIdentifier = (node: TSESTree.Node): node is TSESTree.Identifier =>
-  node.type === AST_NODE_TYPES.Identifier;
+const nodeTypeGuardFactory = <T extends TSESTree.Node>(type: T['type']) => {
+  return (node: TSESTree.Node): node is T => node.type === type;
+};
 
-export const isMemberExpression = (node: TSESTree.Node): node is TSESTree.MemberExpression =>
-  node.type === AST_NODE_TYPES.MemberExpression;
+export const isIdentifier = nodeTypeGuardFactory<TSESTree.Identifier>(AST_NODE_TYPES.Identifier);
 
-export const isProperty = (node: TSESTree.Node): node is TSESTree.Property => node.type === AST_NODE_TYPES.Property;
+export const isMemberExpression = nodeTypeGuardFactory<TSESTree.MemberExpression>(AST_NODE_TYPES.MemberExpression);
 
-export const isVariableDeclarator = (node: TSESTree.Node): node is TSESTree.VariableDeclarator =>
-  node.type === AST_NODE_TYPES.VariableDeclarator;
+export const isProperty = nodeTypeGuardFactory<TSESTree.Property>(AST_NODE_TYPES.Property);
 
-export const isArrayPattern = (node: TSESTree.Node): node is TSESTree.ArrayPattern =>
-  node.type === AST_NODE_TYPES.ArrayPattern;
+export const isVariableDeclarator = nodeTypeGuardFactory<TSESTree.VariableDeclarator>(
+  AST_NODE_TYPES.VariableDeclarator,
+);
 
-export const isArrayExpression = (node: TSESTree.Node): node is TSESTree.ArrayExpression =>
-  node.type === AST_NODE_TYPES.ArrayExpression;
+export const isArrayPattern = nodeTypeGuardFactory<TSESTree.ArrayPattern>(AST_NODE_TYPES.ArrayPattern);
 
-export const isCallExpression = (node: TSESTree.Node): node is TSESTree.CallExpression =>
-  node.type === AST_NODE_TYPES.CallExpression;
+export const isArrayExpression = nodeTypeGuardFactory<TSESTree.ArrayExpression>(AST_NODE_TYPES.ArrayExpression);
 
-export const isObjectPattern = (node: TSESTree.Node): node is TSESTree.ObjectPattern =>
-  node.type === AST_NODE_TYPES.ObjectPattern;
+export const isCallExpression = nodeTypeGuardFactory<TSESTree.CallExpression>(AST_NODE_TYPES.CallExpression);
 
-export const isObjectExpression = (node: TSESTree.Node): node is TSESTree.ObjectExpression =>
-  node.type === AST_NODE_TYPES.ObjectExpression;
+export const isObjectPattern = nodeTypeGuardFactory<TSESTree.ObjectPattern>(AST_NODE_TYPES.ObjectPattern);
 
-export const isTSNonNullExpression = (node: TSESTree.Node): node is TSESTree.TSNonNullExpression =>
-  node.type === AST_NODE_TYPES.TSNonNullExpression;
+export const isObjectExpression = nodeTypeGuardFactory<TSESTree.ObjectExpression>(AST_NODE_TYPES.ObjectExpression);
 
-export const isVariableDeclaration = (node: TSESTree.Node): node is TSESTree.VariableDeclaration =>
-  node.type === AST_NODE_TYPES.VariableDeclaration;
+export const isTSNonNullExpression = nodeTypeGuardFactory<TSESTree.TSNonNullExpression>(
+  AST_NODE_TYPES.TSNonNullExpression,
+);
+
+export const isVariableDeclaration = nodeTypeGuardFactory<TSESTree.VariableDeclaration>(
+  AST_NODE_TYPES.VariableDeclaration,
+);
