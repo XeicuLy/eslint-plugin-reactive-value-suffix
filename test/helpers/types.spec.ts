@@ -31,7 +31,7 @@ describe('src/rules/helpers/types.ts', () => {
 
   describe('createReportData', () => {
     it('should create a report object with the node, messageId, and name data', () => {
-      const mockNode = { type: AST_NODE_TYPES.Identifier } as TSESTree.Identifier;
+      const mockNode = { type: AST_NODE_TYPES.Identifier, name: 'testVariable' } as TSESTree.Identifier;
 
       const messageId = 'testMessageId';
 
