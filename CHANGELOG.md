@@ -1,3 +1,10 @@
+## [3.0.1](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v3.0.0...v3.0.1) (2025-04-17)
+
+
+### Bug Fixes
+
+* **index:** fix type ([b5e6eaf](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/commit/b5e6eaf8a7b6a94911b2d27f9adabd19d8f612fe))
+
 # [3.0.0](https://github.com/XeicuLy/eslint-plugin-reactive-value-suffix/compare/v2.0.1...v3.0.0) (2025-04-10)
 
 
