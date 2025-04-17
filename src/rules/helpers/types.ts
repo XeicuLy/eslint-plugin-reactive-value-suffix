@@ -1,4 +1,4 @@
-import type { ParserServices, TSESTree } from '@typescript-eslint/utils';
+import { ESLintUtils, type ParserServices, type TSESLint, type TSESTree } from '@typescript-eslint/utils';
 import type { TypeChecker } from 'typescript';
 
 export const getTypeString = <T extends TSESTree.Node = TSESTree.Node>(
@@ -10,6 +10,14 @@ export const getTypeString = <T extends TSESTree.Node = TSESTree.Node>(
   const type = typeChecker.getTypeAtLocation(tsNode);
   const typeString = typeChecker.typeToString(type);
   return typeString;
+};
+
+export const getTypeCheckingServices = <Context extends Readonly<TSESLint.RuleContext<string, unknown[]>>>(
+  context: Context,
+) => {
+  const parserServices = ESLintUtils.getParserServices(context);
+  const typeChecker = parserServices.program.getTypeChecker();
+  return { parserServices, typeChecker };
 };
 
 export const createReportData = <RuleMessageIdType extends string>(
