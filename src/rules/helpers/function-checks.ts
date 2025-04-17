@@ -6,13 +6,23 @@ import {
   isIdentifier,
   isMemberExpression,
   isObjectExpression,
-  isObjectPattern,
   isProperty,
   isVariableDeclarator,
 } from './ast-helpers';
 import type { TSESTree } from '@typescript-eslint/utils';
+import type { CallExpressionWithIdentifierCallee, PropertyWithIdentifierObject } from '../types/ast';
 
 export const isPropertyValue = (node: TSESTree.Node): boolean => isProperty(node) && isObjectExpression(node.parent);
+
+export const isPropertyWithIdentifierObject = (
+  property: TSESTree.Property | TSESTree.RestElement,
+): property is PropertyWithIdentifierObject => {
+  return isProperty(property) && isIdentifier(property.key) && isIdentifier(property.value);
+};
+
+export const hasIdentifierCallee = (node: TSESTree.CallExpression): node is CallExpressionWithIdentifierCallee => {
+  return isIdentifier(node.callee);
+};
 
 export const findAncestorCallExpression = (node: TSESTree.Node): TSESTree.CallExpression | null => {
   let currentNode: TSESTree.Node | undefined = node.parent;
@@ -31,7 +41,7 @@ export const isWatchArgument = (node: TSESTree.Identifier): boolean => {
   const callExpression = findAncestorCallExpression(node);
   if (!callExpression) return false;
 
-  if (!isIdentifier(callExpression.callee) || callExpression.callee.name !== 'watch') {
+  if (!hasIdentifierCallee(callExpression) || callExpression.callee.name !== 'watch') {
     return false;
   }
 
@@ -42,38 +52,45 @@ export const isWatchArgument = (node: TSESTree.Identifier): boolean => {
   return isArrayExpression(callExpression.arguments[0]) && callExpression.arguments[0].elements.includes(node);
 };
 
-export const isSpecialFunctionArgument = (node: TSESTree.Identifier, specialFunctions: Readonly<string[]>): boolean => {
-  const callExpression = findAncestorCallExpression(node);
-  if (!callExpression) return false;
+export const checkFunctionArgument = (
+  node: TSESTree.Identifier,
+  targetNode: TSESTree.CallExpression | null,
+  functionNames: Readonly<string[]>,
+): boolean => {
+  if (!targetNode) return false;
 
-  if (!isIdentifier(callExpression.callee) || !specialFunctions.includes(callExpression.callee.name)) {
-    return false;
-  }
+  return (
+    targetNode.arguments.includes(node) &&
+    hasIdentifierCallee(targetNode) &&
+    functionNames.includes(targetNode.callee.name)
+  );
+};
 
-  return callExpression.arguments.includes(node);
+export const isSpecialFunctionArgument = (
+  node: TSESTree.Identifier,
+  specialFunctionNames: Readonly<string[]>,
+): boolean => {
+  const targetNode = findAncestorCallExpression(node);
+  return checkFunctionArgument(node, targetNode, specialFunctionNames);
+};
+
+export const isArgumentOfIgnoredFunction = (
+  node: TSESTree.Identifier,
+  ignoredFunctionNames: Readonly<string[]>,
+): boolean => {
+  const parent = isCallExpression(node.parent) ? node.parent : null;
+  return checkFunctionArgument(node, parent, ignoredFunctionNames);
 };
 
 export const isComposablesFunctionArgument = (node: TSESTree.Identifier): boolean => {
   const callExpression = findAncestorCallExpression(node);
   if (!callExpression) return false;
 
-  if (!isIdentifier(callExpression.callee) || !COMPOSABLES_FUNCTION_PATTERN.test(callExpression.callee.name)) {
+  if (!hasIdentifierCallee(callExpression) || !COMPOSABLES_FUNCTION_PATTERN.test(callExpression.callee.name)) {
     return false;
   }
 
   return callExpression.arguments.includes(node);
-};
-
-export const isArgumentOfFunction = (node: TSESTree.Identifier, ignoredFunctionNames: Readonly<string[]>): boolean => {
-  const parent = node.parent;
-
-  if (!isCallExpression(parent)) {
-    return false;
-  }
-
-  return (
-    parent.arguments.includes(node) && isIdentifier(parent.callee) && ignoredFunctionNames.includes(parent.callee.name)
-  );
 };
 
 export const shouldSuppressWarning = (
@@ -83,9 +100,7 @@ export const shouldSuppressWarning = (
   ignoredFunctionNames: Readonly<string[]>,
 ): boolean => {
   const isInDeclarationContext =
-    isVariableDeclarator(parent) ||
-    isArrayPattern(parent) ||
-    (isProperty(parent) && parent.parent && isObjectPattern(parent.parent));
+    isVariableDeclarator(parent) || isArrayPattern(parent) || (parent.parent && isPropertyValue(parent));
 
   const isPropertyAccess =
     (isMemberExpression(parent) && isIdentifier(parent.property) && parent.property.name === 'value') ||
@@ -96,7 +111,7 @@ export const shouldSuppressWarning = (
   const isSpecialArgument =
     isWatchArgument(node) ||
     isSpecialFunctionArgument(node, composableFunctions) ||
-    isArgumentOfFunction(node, ignoredFunctionNames) ||
+    isArgumentOfIgnoredFunction(node, ignoredFunctionNames) ||
     isComposablesFunctionArgument(node);
 
   const isInLiteral = isArrayExpression(node.parent);
