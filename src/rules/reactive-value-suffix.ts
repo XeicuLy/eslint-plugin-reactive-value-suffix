@@ -22,7 +22,7 @@ const RULE_MESSAGE_ID = 'reactiveValueSuffix' as const;
 
 type MessageIds = typeof RULE_MESSAGE_ID;
 type ReactiveValueRuleOptions = { functionNamesToIgnoreValueCheck?: string[] };
-type ReactiveValueRuleContext = Readonly<TSESLint.RuleContext<MessageIds, [ReactiveValueRuleOptions?]>>;
+type ReactiveValueRuleContext = Readonly<TSESLint.RuleContext<MessageIds, ReactiveValueRuleOptions[]>>;
 
 const needsValueSuffix = (
   variableNode: TSESTree.Identifier,
@@ -166,7 +166,7 @@ const createESLintRule = ESLintUtils.RuleCreator(
   () => 'https://www.npmjs.com/package/eslint-plugin-reactive-value-suffix',
 );
 
-export const reactiveValueSuffix = createESLintRule<[ReactiveValueRuleOptions?], MessageIds>({
+export const reactiveValueSuffix = createESLintRule<ReactiveValueRuleOptions[], MessageIds>({
   name: 'reactive-value-suffix',
   meta: {
     type: 'suggestion',
