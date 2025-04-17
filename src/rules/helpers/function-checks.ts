@@ -10,7 +10,7 @@ import {
   isVariableDeclarator,
 } from './ast-helpers';
 import type { TSESTree } from '@typescript-eslint/utils';
-import type { PropertyWithIdentifierObject } from '../types/ast';
+import type { CallExpressionWithIdentifierCallee, PropertyWithIdentifierObject } from '../types/ast';
 
 export const isPropertyValue = (node: TSESTree.Node): boolean => isProperty(node) && isObjectExpression(node.parent);
 
@@ -18,6 +18,10 @@ export const isPropertyWithIdentifierObject = (
   property: TSESTree.Property | TSESTree.RestElement,
 ): property is PropertyWithIdentifierObject => {
   return isProperty(property) && isIdentifier(property.key) && isIdentifier(property.value);
+};
+
+export const hasIdentifierCallee = (node: TSESTree.CallExpression): node is CallExpressionWithIdentifierCallee => {
+  return isIdentifier(node.callee);
 };
 
 export const findAncestorCallExpression = (node: TSESTree.Node): TSESTree.CallExpression | null => {
@@ -37,7 +41,7 @@ export const isWatchArgument = (node: TSESTree.Identifier): boolean => {
   const callExpression = findAncestorCallExpression(node);
   if (!callExpression) return false;
 
-  if (!isIdentifier(callExpression.callee) || callExpression.callee.name !== 'watch') {
+  if (!hasIdentifierCallee(callExpression) || callExpression.callee.name !== 'watch') {
     return false;
   }
 
@@ -57,7 +61,7 @@ export const checkFunctionArgument = (
 
   return (
     targetNode.arguments.includes(node) &&
-    isIdentifier(targetNode.callee) &&
+    hasIdentifierCallee(targetNode) &&
     functionNames.includes(targetNode.callee.name)
   );
 };
@@ -82,7 +86,7 @@ export const isComposablesFunctionArgument = (node: TSESTree.Identifier): boolea
   const callExpression = findAncestorCallExpression(node);
   if (!callExpression) return false;
 
-  if (!isIdentifier(callExpression.callee) || !COMPOSABLES_FUNCTION_PATTERN.test(callExpression.callee.name)) {
+  if (!hasIdentifierCallee(callExpression) || !COMPOSABLES_FUNCTION_PATTERN.test(callExpression.callee.name)) {
     return false;
   }
 

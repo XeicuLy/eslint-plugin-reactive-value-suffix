@@ -8,7 +8,12 @@ import {
   isTSNonNullExpression,
   isVariableDeclaration,
 } from './helpers/ast-helpers';
-import { isPropertyValue, isPropertyWithIdentifierObject, shouldSuppressWarning } from './helpers/function-checks';
+import {
+  hasIdentifierCallee,
+  isPropertyValue,
+  isPropertyWithIdentifierObject,
+  shouldSuppressWarning,
+} from './helpers/function-checks';
 import { createReportData, getTypeCheckingServices, getTypeString, memoize } from './helpers/types';
 import type { CallExpressionWithIdentifierCallee, ObjectPatternCallExpressionDeclarator } from './types/ast';
 import type { TypeChecker } from 'typescript';
@@ -47,7 +52,7 @@ const getStoreToRefsVariableNames = (ruleContext: ReactiveValueRuleContext): str
     isObjectPattern(declaration.id) &&
     !!declaration.init &&
     isCallExpression(declaration.init) &&
-    isIdentifier(declaration.init.callee) &&
+    hasIdentifierCallee(declaration.init) &&
     declaration.init.callee.name === 'storeToRefs';
 
   const extractIdentifierNames = (declaration: TSESTree.VariableDeclarator): string[] => {
@@ -63,7 +68,7 @@ const getAllReactiveVariableNames = (ruleContext: ReactiveValueRuleContext): str
   const isReactiveFunctionCall = (declaration: TSESTree.VariableDeclarator): boolean =>
     !!declaration.init &&
     isCallExpression(declaration.init) &&
-    isIdentifier(declaration.init.callee) &&
+    hasIdentifierCallee(declaration.init) &&
     REACTIVE_FUNCTIONS.includes(declaration.init.callee.name as (typeof REACTIVE_FUNCTIONS)[number]);
 
   const extractVariableNames = (declaration: TSESTree.VariableDeclarator): string[] => {
@@ -95,7 +100,7 @@ const getComposableFunctionVariableNames = (ruleContext: ReactiveValueRuleContex
   const isComposableFunctionCall = (declaration: TSESTree.VariableDeclarator): boolean =>
     !!declaration.init &&
     isCallExpression(declaration.init) &&
-    isIdentifier(declaration.init.callee) &&
+    hasIdentifierCallee(declaration.init) &&
     COMPOSABLES_FUNCTION_PATTERN.test(declaration.init.callee.name);
 
   const extractPropertyVariableNames = (declaration: TSESTree.VariableDeclarator): string[] => {
