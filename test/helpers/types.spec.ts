@@ -1,18 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AST_NODE_TYPES, type ParserServices, type TSESTree } from '@typescript-eslint/utils';
-import type { TypeChecker, Type, Node as TSNode } from 'typescript';
 import { getTypeString, createReportData, memoize } from '@/rules/helpers/types';
+import type { TypeChecker, Type, Node as TSNode } from 'typescript';
 
 describe('src/rules/helpers/types.ts', () => {
   describe('getTypeString', () => {
     it('should return the type string of a node', () => {
       // Mock the necessary TypeScript services
-      const mockNode = {
-        type: AST_NODE_TYPES.Identifier,
-        name: 'testVariable',
-        range: [0, 0],
-        loc: { start: { line: 0, column: 0 }, end: { line: 0, column: 0 } },
-      } as TSESTree.Identifier;
+      const mockNode = { type: AST_NODE_TYPES.Identifier } as TSESTree.Identifier;
 
       const mockTsNode = {} as TSNode;
       const mockType = {} as Type;
@@ -36,12 +31,7 @@ describe('src/rules/helpers/types.ts', () => {
 
   describe('createReportData', () => {
     it('should create a report object with the node, messageId, and name data', () => {
-      const mockNode = {
-        type: AST_NODE_TYPES.Identifier,
-        name: 'testVariable',
-        range: [0, 0],
-        loc: { start: { line: 0, column: 0 }, end: { line: 0, column: 0 } },
-      } as TSESTree.Identifier;
+      const mockNode = { type: AST_NODE_TYPES.Identifier } as TSESTree.Identifier;
 
       const messageId = 'testMessageId';
 
