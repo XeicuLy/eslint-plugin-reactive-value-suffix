@@ -55,7 +55,7 @@ export const isWatchArgument = (node: TSESTree.Identifier): boolean => {
 export const checkFunctionArgument = (
   node: TSESTree.Identifier,
   targetNode: TSESTree.CallExpression | null,
-  functionNames: Readonly<string[]>,
+  functionNames: ReadonlyArray<string>,
 ): boolean => {
   if (!targetNode) return false;
 
@@ -68,7 +68,7 @@ export const checkFunctionArgument = (
 
 export const isSpecialFunctionArgument = (
   node: TSESTree.Identifier,
-  specialFunctionNames: Readonly<string[]>,
+  specialFunctionNames: ReadonlyArray<string>,
 ): boolean => {
   const targetNode = findAncestorCallExpression(node);
   return checkFunctionArgument(node, targetNode, specialFunctionNames);
@@ -76,7 +76,7 @@ export const isSpecialFunctionArgument = (
 
 export const isArgumentOfIgnoredFunction = (
   node: TSESTree.Identifier,
-  ignoredFunctionNames: Readonly<string[]>,
+  ignoredFunctionNames: ReadonlyArray<string>,
 ): boolean => {
   const parent = isCallExpression(node.parent) ? node.parent : null;
   return checkFunctionArgument(node, parent, ignoredFunctionNames);
@@ -96,8 +96,8 @@ export const isComposablesFunctionArgument = (node: TSESTree.Identifier): boolea
 export const shouldSuppressWarning = (
   node: TSESTree.Identifier,
   parent: TSESTree.Node,
-  composableFunctions: Readonly<string[]>,
-  ignoredFunctionNames: Readonly<string[]>,
+  composableFunctions: ReadonlyArray<string>,
+  ignoredFunctionNames: ReadonlyArray<string>,
 ): boolean => {
   const isInDeclarationContext =
     isVariableDeclarator(parent) || isArrayPattern(parent) || (parent.parent && isPropertyValue(parent));
