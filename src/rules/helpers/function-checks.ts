@@ -6,6 +6,7 @@ import {
   isIdentifier,
   isMemberExpression,
   isObjectExpression,
+  isObjectPattern,
   isProperty,
   isVariableDeclarator,
 } from './ast-helpers';
@@ -99,8 +100,13 @@ export const shouldSuppressWarning = (
   composableFunctions: ReadonlyArray<string>,
   ignoredFunctionNames: ReadonlyArray<string>,
 ): boolean => {
+  const isAliasedDestructuring = isProperty(parent) && parent.value === node && isObjectPattern(parent.parent);
+
   const isInDeclarationContext =
-    isVariableDeclarator(parent) || isArrayPattern(parent) || (parent.parent && isPropertyValue(parent));
+    isVariableDeclarator(parent) ||
+    isArrayPattern(parent) ||
+    (parent.parent && isPropertyValue(parent)) ||
+    isAliasedDestructuring;
 
   const isPropertyAccess =
     (isMemberExpression(parent) && isIdentifier(parent.property) && parent.property.name === 'value') ||
